@@ -1,0 +1,1 @@
+enum MenuState { CurrentOrders, CompletedOrders }
