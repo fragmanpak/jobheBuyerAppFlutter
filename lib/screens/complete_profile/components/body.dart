@@ -1,10 +1,10 @@
 import 'dart:io';
 
+import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-
+import 'package:path/path.dart' as path;
 import '../../../constants.dart';
 
 class Body extends StatefulWidget {
@@ -15,8 +15,6 @@ class Body extends StatefulWidget {
 }
 
 class _BodyState extends State<Body> {
-  //GlobalKey<_BodyState> _globalKey = GlobalKey();
-
   bool _status = true;
   final FocusNode myFocusNode = FocusNode();
 
@@ -41,18 +39,20 @@ class _BodyState extends State<Body> {
     });
   }
 
-  saveUser() async {
-    var imageFile =
-        FirebaseStorage.instance.ref().child("path").child("/.jpg");
-    UploadTask task = imageFile.putFile(file);
-    //TaskSnapshot snapshot = await task;
+  Future<String> saveUser() async {
+    final String fileName = path.basename(file.path);
+    firebase_storage.Reference reference = firebase_storage
+        .FirebaseStorage.instance
+        .ref()
+        .child('PicUrl')
+        .child(fileName);
+    UploadTask task = reference.putFile(file);
+    TaskSnapshot snapshot = await task;
     //for downloading
-    // url = await snapshot.ref.getDownloadURL();
-    // await FirebaseFirestore.instance
-    //     .collection("images")
-    //     .doc()
-    //     .set({"imageUrl": url});
-    // print(url);
+    snapshot.ref.getData();
+    url = await snapshot.ref.getDownloadURL();
+
+    return url;
   }
 
   buildShowDialog(BuildContext context) {
@@ -83,7 +83,7 @@ class _BodyState extends State<Body> {
                     color: Colors.white,
                     child: GestureDetector(
                         onTap: () {
-                          getImage();
+                          //  getImage();
                         },
                         child: Padding(
                           padding: EdgeInsets.only(top: 20.0),
@@ -96,7 +96,8 @@ class _BodyState extends State<Body> {
                                   child: CircleAvatar(
                                     radius: 80,
                                     foregroundImage: file == null
-                                        ? AssetImage("assets/images/Profile Image.png")
+                                        ? AssetImage(
+                                            "assets/images/Profile Image.png")
                                         : FileImage(File(file.path)),
                                   ),
                                 ),

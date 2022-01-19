@@ -1,9 +1,12 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:jobheebuyer/components/about_us.dart';
 import 'package:jobheebuyer/components/app_updates.dart';
 import 'package:jobheebuyer/components/help.dart';
 import 'package:jobheebuyer/components/share_with_friends.dart';
+import 'package:jobheebuyer/models/items_model.dart';
 import 'package:jobheebuyer/screens/complete_profile/complete_profile_screen.dart';
 import 'package:jobheebuyer/screens/completed_orders/complete_orders.dart';
 import 'package:jobheebuyer/screens/current_order/current_order.dart';
@@ -17,7 +20,10 @@ import '../home_screen.dart';
 class NavigationDrawer extends StatelessWidget {
   final padding = EdgeInsets.symmetric(horizontal: 20);
   final _auth = FirebaseAuth.instance;
-
+  final DatabaseReference _dbRef = FirebaseDatabase.instance
+      .reference()
+      .child(dbTName)
+      .child(tbBuyer);
   @override
   Widget build(BuildContext context) {
     final name = 'test1';
@@ -34,14 +40,17 @@ class NavigationDrawer extends StatelessWidget {
               urlImage: urlImage,
               name: name,
               email: email,
-              onClicked: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => UserPage(
-                    name: 'Himura Kenshan',
-                    urlImage: urlImage,
+              onClicked: (){
+                getDrawerHeaderFroDB();
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => UserPage(
+                      name: 'Himura Kenshan',
+                      urlImage: urlImage,
+                    ),
                   ),
-                ),
-              ),
+                );
+              }
             ), // end buildHeader
             const SizedBox(
               height: 20,
@@ -243,5 +252,47 @@ class NavigationDrawer extends StatelessWidget {
           ),
         ),
       );
+
+  void getDrawerHeaderFroDB() {
+    String uid= currentUser();
+    _dbRef.once().then((DataSnapshot snapshot) {
+      if (snapshot.value == null) {
+        print(snapshot.value.toString());
+      } else {
+        var keys = snapshot.value.keys;
+        var data = snapshot.value;
+        //allData.clear();
+
+        for (var key in keys) {
+          if(uid == key){
+
+          }
+          ItemModel d = new ItemModel(
+            data[key]['itemID'],
+            data[key]['itemName'],
+            data[key]['itemQuantity'],
+            data[key]['itemUnit'],
+          );
+          //allData.add(d);
+        }
+      }
+    });
+
+  }
+  String currentUser() {
+    String uuid;
+    try {
+      var currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser != null) {
+        uuid = currentUser.uid;
+        print('Uuid of current user = ' + uuid);
+        return uuid;
+      }
+    } catch (e) {
+      print('current user error hy+ ' + e);
+      return null;
+    }
+    return null;
+  }
 
 }

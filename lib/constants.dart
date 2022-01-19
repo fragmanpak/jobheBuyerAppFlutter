@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:jobheebuyer/size_config.dart';
 
 const String dbTName = 'kjobhee';
+const String kBuyer = 'buyer';
 const String tbOrderOfBuyers = 'order_of_buyers';
+const String tbBuyer = 'buyer';
 const kPrimaryColor = Color(0xFF00B6F0);
 const kHoverColor = Color(0xFF82DAF6);
 const kPrimaryLightColor = Color(0xFFFFECDF);
@@ -40,6 +42,10 @@ final ButtonStyle buttonStyle = ElevatedButton.styleFrom(
 final fcmKey =
     "AAAA0bwCa1A:APA91bGOUCaHQX2DHALNIw_og0DpW7u-X9UA4s1__YpGy7HalbrnUoADyIGxAScLN6zffOTNYQ7mj8Xpt4o2n00LDx7oOcknUnUmzXkl4AhwtvjiHtcRftAWndxP6PnU7FlGgikhCS2A";
 final apiKey = "AIzaSyATqxhwVJGlltWIGxXWECV4BxbLrAABCWE";
+final appId= "1:900802440016:android:efb5412b0a26b620a5da55";
+final messagingSenderId = "900802440016";
+final projectId = "job-hee";
+
 const defaultDuration = Duration(milliseconds: 250);
 
 // Form Error
@@ -56,7 +62,9 @@ const String kMatchPassError = "Passwords don't match";
 const String kNameNullError = "Please Enter your name";
 const String kPhoneNumberNullError = "Please Enter your phone number";
 const String kAddressNullError = "Please Enter your address";
-
+const String kBusTypeNullError = "Please enter business type";
+const String kBusDescNullError = "Please enter your business description";
+const String kMapAddressNullError = "Please select your current location";
 final cardBoxDecoration = BoxDecoration(
     color: Colors.white,
     boxShadow: [

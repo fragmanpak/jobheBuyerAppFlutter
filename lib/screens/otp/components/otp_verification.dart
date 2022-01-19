@@ -24,7 +24,8 @@ class _OtpVerificationState extends State<OtpVerification> {
   final FocusNode _pinOtpCodeFocus = FocusNode();
   FirebaseAuth _auth = FirebaseAuth.instance;
   String verificationCode;
-
+  CircularProgressIndicator loading=new CircularProgressIndicator();
+  bool _loading = false;
   BoxDecoration pinOtpCodeDecoration = BoxDecoration(
       color: Colors.blueAccent,
       borderRadius: BorderRadius.circular(10.0),
@@ -87,6 +88,7 @@ class _OtpVerificationState extends State<OtpVerification> {
                         .then(
                       (value) {
                         if (value.user != null) {
+
                           Navigator.of(context).push(
                               MaterialPageRoute(builder: (c) => HomeScreen()));
                         }
@@ -145,10 +147,6 @@ class _OtpVerificationState extends State<OtpVerification> {
             if (value.user != null) {
               Navigator.of(context)
                   .push(MaterialPageRoute(builder: (c) => HomeScreen()));
-              // Navigator.pushNamed(
-              //   context,
-              //   HomeScreen.routeName,
-              // );
             }
           });
           print(" verification completed in  ");

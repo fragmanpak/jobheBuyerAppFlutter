@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -30,7 +31,7 @@ class _AddOrderState extends State<AddOrder> {
   TextEditingController _nameController = new TextEditingController();
   TextEditingController _textQntController = new TextEditingController();
   String _selectedText = 'kg';
-  String uuid = 'kyLErlq5pmMFhSSuLucuj4izpIG3';
+  String uuid = '';
   bool hasInternet = false;
   List<ItemModel> allData = [];
 
@@ -44,7 +45,7 @@ class _AddOrderState extends State<AddOrder> {
     OrderModel.setOrderId(orderId);
     uuid = currentUser();
     super.initState();
-    showDataList();
+
     controller.addListener(() {
       double value = controller.offset / 119;
 
@@ -65,13 +66,29 @@ class _AddOrderState extends State<AddOrder> {
         //  this.uuid=currentUser();
       }
     });
+
   }
 
-  currentUser() {
-    // final User user = FirebaseAuth.instance.currentUser;
-    // final uid = user.uid.toString();
-    // return uid;
-    return 'kyLErlq5pmMFhSSuLucuj4izpIG3';
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    showDataList();
+  }
+
+  String currentUser() {
+    try {
+      var currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser != null) {
+        uuid = currentUser.uid;
+        print('Uuid of current user = ' + uuid);
+        return uuid;
+      }
+    } catch (e) {
+      print('current user error hy+ ' + e);
+      return null;
+    }
+    return null;
   }
 
   @override
