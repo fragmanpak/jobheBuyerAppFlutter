@@ -1,9 +1,14 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'components/body.dart';
 
 class HomeScreen extends StatelessWidget {
+  final sellerData;
+
+  HomeScreen({Key key, this.sellerData}) : super(key: key);
   static String routeName = "/home";
+  final _auth = FirebaseAuth.instance;
 
   @override
   Widget build(BuildContext context) {
@@ -19,12 +24,17 @@ class HomeScreen extends StatelessWidget {
                     child: new Text('No'),
                   ),
                   TextButton(
-                    onPressed: () => SystemNavigator.pop(),
+                    onPressed: () async {
+                      await _auth.signOut();
+                      SystemNavigator.pop();
+                    },
                     child: new Text('Yes'),
                   ),
                 ],
               ),
             ),
-        child: Scaffold(body: Body()));
+        child: Scaffold(body: Body(
+           sellerData: sellerData
+        )));
   }
 }

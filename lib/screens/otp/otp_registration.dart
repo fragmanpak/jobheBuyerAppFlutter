@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:internet_connection_checker/internet_connection_checker.dart';
+import 'package:jobheebuyer/components/new_snake_bar.dart';
 
 import '../../constants.dart';
 import '../../size_config.dart';
@@ -18,27 +20,31 @@ class _OtpRegistrationState extends State<OtpRegistration> {
   final _controller = TextEditingController();
 
   Future<void> onClickOTP(BuildContext context) async {
-    if (_controller.text.isEmpty) {
-      showErrorDialog(context, 'Contact number can\'t be empty.');
-    } else if (validateMobileNumber(_controller.text) == true) {
-      String contact = _controller.text;
-      await Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (c) => OtpVerification(
-            phone: contact,
-            codeDigits: countryCode,
+    var check = await InternetConnectionChecker().hasConnection;
+    if (check == true) {
+      if (_controller.text.isEmpty) {
+        showErrorDialog(context, 'Contact number can\'t be empty.');
+      } else if (validateMobileNumber(_controller.text) == true) {
+        String contact = _controller.text;
+        await Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (c) => OtpVerification(
+              phone: contact,
+              codeDigits: countryCode,
+            ),
           ),
-        ),
-      );
+        );
+      } else {
+        showErrorDialog(context, 'Please enter valid mobile number');
+      }
     } else {
-      showErrorDialog(context, 'Please enter valid mobile number');
+      MySnakeBar.createSnackBar(Colors.red, 'No Internet Connection', context);
     }
+
   }
 
   bool validateMobileNumber(String value) {
-    String pattern = r'(^(?:[+0]9)?[0-9]{10,12}$)';
-    RegExp regExp = new RegExp(pattern);
-    if (!regExp.hasMatch(value)) {
+    if (!mobilePattern.hasMatch(value)) {
       return false;
     }
     return true;

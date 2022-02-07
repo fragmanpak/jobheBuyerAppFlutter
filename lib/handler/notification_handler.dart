@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:jobheebuyer/components/help.dart';
 
 class NotificationHandler {
   static final flutterLocalNotificationPlugin =
@@ -9,24 +10,23 @@ class NotificationHandler {
 
   static initNotification(BuildContext context) {
     myContext = context;
-     var initAndroid = AndroidInitializationSettings("@drawable/jobhee.png");
+    var initAndroid = AndroidInitializationSettings("jobhee");
 
-     var initSetting = InitializationSettings(android: initAndroid);
+    var initSetting = InitializationSettings(android: initAndroid);
     flutterLocalNotificationPlugin.initialize(initSetting,
         onSelectNotification: onSelectNotification);
   }
 
-  static Future onSelectNotification(String payload) async {
-    if (payload != null) {
-      print('Get  payload: $payload ');
+  static Future onSelectNotification(String route) async {
+    if (route != null) {
+      print('Get  payload: $route ');
     }
     await Navigator.push(
       myContext,
       MaterialPageRoute<void>(builder: (context) {
-        //SecondScreen(payload);
-        return;
+        return Help(route);
+
       }),
     );
-
   }
 }

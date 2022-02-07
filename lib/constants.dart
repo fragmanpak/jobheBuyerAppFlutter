@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:jobheebuyer/size_config.dart';
 
-const String dbTName = 'kjobhee';
+const String kJob = 'kjobhee';
 const String kBuyer = 'buyer';
-const String tbOrderOfBuyers = 'order_of_buyers';
-const String tbBuyer = 'buyer';
+const String kOrderOfBuyers = 'order_of_buyers';
+const String kSeller = 'seller';
+const String search_nearby_sellers = 'Search Nearby Sellers';
+
 const kPrimaryColor = Color(0xFF00B6F0);
 const kHoverColor = Color(0xFF82DAF6);
 const kPrimaryLightColor = Color(0xFFFFECDF);
@@ -35,14 +37,14 @@ final customTextStyle = TextStyle(
   height: 1.5,
 );
 final ButtonStyle buttonStyle = ElevatedButton.styleFrom(
-  padding: const EdgeInsets.symmetric( horizontal: 40),
+  padding: const EdgeInsets.symmetric(horizontal: 40),
   primary: kPrimaryColor, // background
 );
 
-final fcmKey =
+final serverKey =
     "AAAA0bwCa1A:APA91bGOUCaHQX2DHALNIw_og0DpW7u-X9UA4s1__YpGy7HalbrnUoADyIGxAScLN6zffOTNYQ7mj8Xpt4o2n00LDx7oOcknUnUmzXkl4AhwtvjiHtcRftAWndxP6PnU7FlGgikhCS2A";
 final apiKey = "AIzaSyATqxhwVJGlltWIGxXWECV4BxbLrAABCWE";
-final appId= "1:900802440016:android:efb5412b0a26b620a5da55";
+final appId = "1:900802440016:android:efb5412b0a26b620a5da55";
 final messagingSenderId = "900802440016";
 final projectId = "job-hee";
 
@@ -51,8 +53,11 @@ const defaultDuration = Duration(milliseconds: 250);
 // Form Error
 final RegExp emailValidatorRegExp =
     RegExp(r"^[a-zA-Z0-9.]+@[a-zA-Z0-9]+\.[a-zA-Z]+");
-final RegExp textPattern = RegExp('[a-zA-Z]');
-final RegExp numberPattern =RegExp('[1-5]') ;
+final RegExp textPattern = RegExp("[a-z A-Z]");
+//final RegExp textPattern = RegExp('[a-zA-Z]');
+final RegExp numberPattern = RegExp('[1-3]');
+
+final RegExp mobilePattern = RegExp(r'(^(?:[+0]9)?[0-9]{10,12}$)');
 
 const String kEmailNullError = "Please Enter your email";
 const String kInvalidEmailError = "Please Enter Valid Email";
@@ -65,11 +70,9 @@ const String kAddressNullError = "Please Enter your address";
 const String kBusTypeNullError = "Please enter business type";
 const String kBusDescNullError = "Please enter your business description";
 const String kMapAddressNullError = "Please select your current location";
-final cardBoxDecoration = BoxDecoration(
-    color: Colors.white,
-    boxShadow: [
-      BoxShadow(color: Colors.black.withAlpha(100), blurRadius: 10.0),
-    ]);
+final cardBoxDecoration = BoxDecoration(color: Colors.white, boxShadow: [
+  BoxShadow(color: Colors.black.withAlpha(100), blurRadius: 10.0),
+]);
 
 final otpInputDecoration = InputDecoration(
   contentPadding:

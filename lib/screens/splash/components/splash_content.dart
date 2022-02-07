@@ -13,31 +13,28 @@ class SplashContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Column(
-        children: <Widget>[
-          Text(
-            "Jobhee",
-            style: TextStyle(
-              fontSize: getProportionateScreenWidth(25),
-              color: kPrimaryColor,
-              fontWeight: FontWeight.bold,
-            ),
+    return Column(
+      children: <Widget>[
+        Spacer(),
+        Text(
+          "Jobhee",
+          style: TextStyle(
+            fontSize: getProportionateScreenWidth(36),
+            color: kPrimaryColor,
+            fontWeight: FontWeight.bold,
           ),
-          Text(
-            text,
-            textAlign: TextAlign.center,
-          ),
-
-          Image.asset(
-            image,
-            height: getProportionateScreenHeight(265),
-            width: getProportionateScreenWidth(235),
-          ),
-
-        ],
-      ),
-
+        ),
+        Text(
+          text,
+          textAlign: TextAlign.center,
+        ),
+        Spacer(flex: 2),
+        Image.asset(
+          image,
+          height: getProportionateScreenHeight(265),
+          width: getProportionateScreenWidth(235),
+        ),
+      ],
     );
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:jobheebuyer/constants.dart';
+
+import '../../../constants.dart';
 
 class UserPage extends StatelessWidget {
   final String name;
@@ -13,14 +14,18 @@ class UserPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: kPrimaryColor,
-        title: Text(name),
+        title: name != null ? Text(name) : Text('No data'),
       ),
-      body: Image.network(
-        urlImage,
-        width: double.infinity,
-        height: double.infinity,
-        fit: BoxFit.cover,
-      ),
+      body: urlImage != null
+          ? Image.network(
+              urlImage,
+              width: double.infinity,
+              height: double.infinity,
+              fit: BoxFit.cover,
+            )
+          : Center(
+              child: Text('No Image'),
+            ),
     );
   }
 }

@@ -1,14 +1,15 @@
 import 'dart:async';
 
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
+import 'package:jobheebuyer/components/new_snake_bar.dart';
 import 'package:jobheebuyer/components/top_snake_bar.dart';
 import 'package:jobheebuyer/helper/order_model.dart';
 import 'package:jobheebuyer/models/items_model.dart';
 import 'package:jobheebuyer/screens/find_seller/seller_find_screen.dart';
+import 'package:jobheebuyer/services/services.dart';
 import 'package:jobheebuyer/size_config.dart';
 
 import '../../constants.dart';
@@ -22,10 +23,8 @@ class AddOrder extends StatefulWidget {
 
 class _AddOrderState extends State<AddOrder> {
   StreamSubscription netSubscription;
-  DatabaseReference _dbRef = FirebaseDatabase.instance
-      .reference()
-      .child(dbTName)
-      .child(tbOrderOfBuyers);
+  DatabaseReference _dbRef =
+      FirebaseDatabase.instance.reference().child(kJob).child(kOrderOfBuyers);
 
   //StreamSubscription _dbRefSubscription;
   TextEditingController _nameController = new TextEditingController();
@@ -41,9 +40,7 @@ class _AddOrderState extends State<AddOrder> {
 
   @override
   void initState() {
-    String orderId = _dbRef.push().key;
-    OrderModel.setOrderId(orderId);
-    uuid = currentUser();
+    _loadResources();
     super.initState();
 
     controller.addListener(() {
@@ -52,43 +49,22 @@ class _AddOrderState extends State<AddOrder> {
       setState(() {
         topContainers = value;
         closeTopContainer = controller.offset > 65;
-        print('topContainer = ' +
-            topContainers.toString() +
-            "    " +
-            'closeTopContainer = ' +
-            closeTopContainer.toString());
       });
     });
     netSubscription =
         InternetConnectionChecker().onStatusChange.listen((status) {
       final hasInternet = status == InternetConnectionStatus.connected;
-      if (hasInternet == true) {
-        //  this.uuid=currentUser();
+      if (hasInternet == false) {
+        MySnakeBar.createSnackBar(
+            Colors.red, 'No Internet Connection', context);
       }
     });
-
   }
-
 
   @override
   void didChangeDependencies() {
+    //showDataList();
     super.didChangeDependencies();
-    showDataList();
-  }
-
-  String currentUser() {
-    try {
-      var currentUser = FirebaseAuth.instance.currentUser;
-      if (currentUser != null) {
-        uuid = currentUser.uid;
-        print('Uuid of current user = ' + uuid);
-        return uuid;
-      }
-    } catch (e) {
-      print('current user error hy+ ' + e);
-      return null;
-    }
-    return null;
   }
 
   @override
@@ -114,7 +90,7 @@ class _AddOrderState extends State<AddOrder> {
                 duration: const Duration(milliseconds: 400),
                 opacity: closeTopContainer ? 0 : 1,
                 child: AnimatedContainer(
-                  color: Colors.greenAccent,
+                  //color: Colors.greenAccent,
                   height: closeTopContainer ? 0 : categoryHeight - 40,
                   width: SizeConfig.screenWidth,
                   duration: const Duration(milliseconds: 400),
@@ -124,7 +100,7 @@ class _AddOrderState extends State<AddOrder> {
                       fit: BoxFit.fill,
                       alignment: Alignment.center,
                       child: Container(
-                        color: Colors.red,
+                        //color: Colors.red,
                         width: SizeConfig.screenWidth,
                         padding: EdgeInsets.all(15.0),
                         height: categoryHeight - 50,
@@ -133,6 +109,7 @@ class _AddOrderState extends State<AddOrder> {
                             TextFormField(
                               controller: _nameController,
                               maxLength: 15,
+                              focusNode: FocusNode(canRequestFocus: false),
                               keyboardType: TextInputType.text,
                               inputFormatters: [
                                 FilteringTextInputFormatter.allow(textPattern)
@@ -143,6 +120,8 @@ class _AddOrderState extends State<AddOrder> {
                             ),
                             TextFormField(
                               keyboardType: TextInputType.number,
+
+                              focusNode: FocusNode(canRequestFocus: false),
                               inputFormatters: [
                                 FilteringTextInputFormatter.digitsOnly
                               ],
@@ -171,6 +150,7 @@ class _AddOrderState extends State<AddOrder> {
                                       'kg',
                                       'ml',
                                       'meter',
+                                      'dozen',
                                       'other'
                                     ].map<DropdownMenuItem<String>>(
                                         (String value) {
@@ -178,8 +158,9 @@ class _AddOrderState extends State<AddOrder> {
                                         value: value,
                                         child: SingleChildScrollView(
                                           padding: EdgeInsets.only(left: 12.0),
-                                          child: Text(value,
-                                              style: customTextStyle),
+                                          child: Text(
+                                            value,
+                                          ),
                                         ),
                                       );
                                     }).toList(),
@@ -191,16 +172,9 @@ class _AddOrderState extends State<AddOrder> {
                                 hasInternet = await InternetConnectionChecker()
                                     .hasConnection;
                                 if (hasInternet == false) {
-                                  MyInfoBar.success(
-                                      message: 'No Internet Connection',
-                                      icon: Icon(
-                                        Icons.wifi,
-                                        size: 30.0,
-                                        color: Colors.red,
-                                      ),
-                                      context: context);
+                                  MySnakeBar.createSnackBar(Colors.red,
+                                      'No Internet Connection', context);
                                 } else {
-                                  // uuid = currentUser();
                                   if (_nameController.text.length == 0 ||
                                       _textQntController.text.length == 0) {
                                     return showDialog<void>(
@@ -230,7 +204,7 @@ class _AddOrderState extends State<AddOrder> {
                                   } else {
                                     String orderId = OrderModel.getOrderId;
                                     String itemID = _dbRef
-                                        .child(tbOrderOfBuyers)
+                                        .child(kOrderOfBuyers)
                                         .child(orderId)
                                         .push()
                                         .key;
@@ -280,12 +254,6 @@ class _AddOrderState extends State<AddOrder> {
                     itemCount: allData.length,
                     physics: BouncingScrollPhysics(),
                     itemBuilder: (context, index) {
-                      // return cardUI(
-                      //     index,
-                      //     allData[index].itemId,
-                      //     allData[index].itemName,
-                      //     allData[index].itemQuantity,
-                      //     allData[index].itemUnit) ;
                       double scale = 1.0;
                       if (topContainers > 0.5) {
                         scale = index + 0.5 - topContainers;
@@ -318,15 +286,24 @@ class _AddOrderState extends State<AddOrder> {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          if (allData.length == 0) {
-            print('list null hey');
+        onPressed: () async {
+          var check = await InternetConnectionChecker().hasConnection;
+          if (check == true) {
+            print(allData.length);
+            if (allData.length == 0) {
+              MySnakeBar.createSnackBar(
+                  Colors.red, 'Please add some items', context);
+            } else {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        SellerFindScreen(argument: OrderModel.getOrderId),
+                  ));
+            }
           } else {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => SellerFindScreen(),
-              ),
-            );
+            MySnakeBar.createSnackBar(
+                Colors.red, 'No Internet Connection', context);
           }
         },
         label: Text('Find Seller'),
@@ -469,8 +446,8 @@ class _AddOrderState extends State<AddOrder> {
     return showDialog(
         context: context,
         builder: (BuildContext context) {
-          return allData == null
-              ? ''
+          return allData.length == 0
+              ? removeOrderId()
               : AlertDialog(
                   title: Text('Are you sure?'),
                   content: Text(
@@ -487,18 +464,24 @@ class _AddOrderState extends State<AddOrder> {
                     ElevatedButton(
                       child: Text('YES'),
                       onPressed: () {
-                        if (uuid == null) {
-                          Navigator.of(context).pop(true);
-                        } else {
-                          String orderId = OrderModel.getOrderId;
-                          _dbRef.child(uuid).child(orderId).remove();
-                          Navigator.of(context).pop(true);
-                        }
+                        String orderId = OrderModel.getOrderId;
+                        _dbRef.child(uuid).child(orderId).remove();
                         Navigator.of(context).pop(true);
                       },
                     ),
                   ],
                 );
         });
+  }
+
+  removeOrderId() {
+    String orderId = OrderModel.getOrderId;
+    _dbRef.child(uuid).child(orderId).remove();
+  }
+
+  void _loadResources() async {
+    String orderId = _dbRef.push().key;
+    OrderModel.setOrderId(orderId);
+    uuid = await MyDatabaseService.getCurrentUser();
   }
 }

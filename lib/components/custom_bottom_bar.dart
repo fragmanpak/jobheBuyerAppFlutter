@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:jobheebuyer/screens/completed_orders/complete_orders.dart';
-import 'package:jobheebuyer/screens/current_order/current_order.dart';
 
 import '../constants.dart';
 import '../enums.dart';

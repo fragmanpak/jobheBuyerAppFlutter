@@ -3,22 +3,27 @@ import 'package:jobheebuyer/components/custom_tab_bar.dart';
 import 'package:jobheebuyer/screens/add_order/order_add.dart';
 import 'package:jobheebuyer/screens/completed_orders/complete_orders.dart';
 import 'package:jobheebuyer/screens/current_order/current_order.dart';
-import 'package:jobheebuyer/screens/find_seller/seller_find_screen.dart';
 
 import '../../../constants.dart';
 import 'navigation_drawer.dart';
 
 class Body extends StatelessWidget {
+  final sellerData;
+
+  Body({Key key, this.sellerData}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return Material(
-      child: NavHeader(),
+      child: NavHeader(sellerData: sellerData),
     );
   }
 }
 
 class NavHeader extends StatefulWidget {
-  //const NavHeader({Key key}) : super(key: key);
+  final sellerData;
+
+  NavHeader({Key key, this.sellerData}) : super(key: key);
 
   @override
   _NavHeaderState createState() => _NavHeaderState();
@@ -41,14 +46,16 @@ class _NavHeaderState extends State<NavHeader> {
       ),
       drawer: NavigationDrawer(),
       body: <Widget>[
-        CurrentOrder(),
+        CurrentOrder(
+          //sellerData: widget.sellerData,
+        ),
         CompletedOrders(),
       ][_currentIndex],
       floatingActionButton: FloatingActionButton(
           child: Icon(Icons.add),
           onPressed: () {
             Navigator.of(context)
-            .push(MaterialPageRoute(builder: (c) => AddOrder()));
+                .push(MaterialPageRoute(builder: (c) => AddOrder()));
           }),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: BottomAppBar(
@@ -67,7 +74,7 @@ class _NavHeaderState extends State<NavHeader> {
                 }),
             Spacer(),
             TabItem(
-                text: 'CompleteOrders',
+                text: 'All Orders',
                 icon: 'assets/icons/Gift Icon.svg',
                 isSelected: _currentIndex == 1,
                 onTap: () {

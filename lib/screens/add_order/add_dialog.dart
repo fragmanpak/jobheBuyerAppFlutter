@@ -21,7 +21,7 @@ class _AddItemDialogState extends State<AddItemDialog> {
   List<ItemModel> allData = [];
 
   DatabaseReference _dbRef =
-      FirebaseDatabase.instance.reference().child(dbTName).child(tbOrderOfBuyers);
+      FirebaseDatabase.instance.reference().child(kJob).child(kOrderOfBuyers);
   //StreamSubscription<DatabaseEvent> _dbRefSubscription;
 
 

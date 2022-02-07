@@ -8,9 +8,9 @@ import '../constants.dart';
 
 class CardModel extends ChangeNotifier {
   List<Seller> _sellerList = [];
-  final _db = FirebaseDatabase.instance.reference().child(dbTName);
+  final _db = FirebaseDatabase.instance.reference().child(kJob);
   StreamSubscription _sellerStream;
-  static const SELLER_PATH = 'seller';
+
 
   List<Seller> get seller => _sellerList;
 
@@ -19,11 +19,11 @@ class CardModel extends ChangeNotifier {
   }
 
   void _listenToSeller() {
-    _sellerStream = _db.child(SELLER_PATH).onValue.listen((event) {
+    _sellerStream = _db.child(kSeller).onValue.listen((event) {
       final allSellers = Map<String, dynamic>.from(event.snapshot.value);
       _sellerList = allSellers.values
           .map((sellerAsJson) =>
-              Seller.fromRTDB(Map<String, dynamic>.from(sellerAsJson)))
+              Seller.fromJson(Map<String, dynamic>.from(sellerAsJson)))
           .toList();
       notifyListeners();
     });

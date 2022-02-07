@@ -2,22 +2,21 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import 'package:jobheebuyer/components/custom_surfix_icon.dart';
 import 'package:jobheebuyer/components/default_button.dart';
 import 'package:jobheebuyer/screens/home/home_screen.dart';
 import 'package:jobheebuyer/services/map_services.dart';
-import 'dart:ui' as ui;
-import 'package:location/location.dart';
+import 'package:jobheebuyer/services/services.dart';
+import 'package:jobheebuyer/utils/image_assets.dart';
 import 'package:path/path.dart' as path;
 
 import '../../../constants.dart';
@@ -32,97 +31,48 @@ class _BodyState extends State<Body> {
   ImagePicker image = ImagePicker();
   File file;
   DatabaseReference _firebaseDatabase =
-      FirebaseDatabase.instance.reference().child(dbTName).child(kBuyer);
+      FirebaseDatabase.instance.reference().child(kJob).child(kSeller);
 
   String uuid;
   final _formKey = GlobalKey<FormState>();
   final List<String> errors = [];
 
-  //String firstName;
-  //String businessType;
-  //String busDescription;
-  // String mapAddress;
   double lat, lng;
-
-  Circle circle;
-
-  LocationData location;
-  Position currentPosition;
   String myLocation;
-  Completer<GoogleMapController> _controller = Completer();
   GoogleMapController _mapController;
-  //GeoCode geoCode = GeoCode();
-  //Coordinates coordinates;
-  Marker marker;
-  Location _locationTracker = Location();
-  StreamSubscription _locationSubscription;
-
+  TextEditingController _showMyAddress = new TextEditingController();
   TextEditingController _editingControllerMapAddress =
       new TextEditingController();
   TextEditingController _editingControllerName = new TextEditingController();
   TextEditingController _editingControllerBusType = new TextEditingController();
-  TextEditingController _showMyAddress = new TextEditingController();
   TextEditingController _editingControllerBusDescription =
       new TextEditingController();
   FirebaseMessaging firebaseMessaging;
   var token;
   String url;
   bool _load = false;
-  var bitmapIcon;
-
+  final currentAddressController = TextEditingController();
   static final CameraPosition initialLocation = CameraPosition(
     target: LatLng(31.524316907751494, 74.34614056040162),
-    zoom: 5,
+    zoom: 11.5,
   );
 
-  // getMarker() async {
-  //   ByteData byteData =
-  //       await DefaultAssetBundle.of(context).load("assets/icons/geo-alt.svg");
-  //   return byteData.buffer.asUint8List();
-  // }
-
-
+  _animateCamera(LatLng latLng) async {
+    await _mapController.animateCamera(CameraUpdate.newCameraPosition(
+      CameraPosition(
+          target: LatLng(latLng.latitude, latLng.longitude), zoom: 11.5),
+    ));
+  }
 
   @override
   void initState() {
     super.initState();
-    getCurrentUser();
   }
 
   @override
-  void didChangeDependencies() {
+  void didChangeDependencies() async {
     super.didChangeDependencies();
-    token = getDeviceToken();
-    // Ask for location permission
-    requestAndCheckPermission();
-  }
-
-  Future<bool> requestAndCheckPermission() async {
-    final permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      final request = await Geolocator.requestPermission();
-      if (request == LocationPermission.always) {
-        return true;
-      } else {
-        return false;
-      }
-    } else if (permission == LocationPermission.always) {
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  getCurrentUser() async {
-    try {
-      var currentUser = FirebaseAuth.instance.currentUser;
-      if (currentUser != null) {
-        uuid = currentUser.uid;
-        print('Uuid of current user = ' + uuid);
-      }
-    } catch (e) {
-      print('current user error hy+ ' + e);
-    }
+    uuid = await MyDatabaseService.getCurrentUser();
   }
 
   @override
@@ -130,9 +80,7 @@ class _BodyState extends State<Body> {
     return Form(
       key: _formKey,
       child: _load
-          ? Center(
-              child: CircularProgressIndicator(),
-            )
+          ? LinearProgressIndicator()
           : Center(
               child: SingleChildScrollView(
                 scrollDirection: Axis.vertical,
@@ -156,21 +104,13 @@ class _BodyState extends State<Body> {
                                 children: <Widget>[
                                   Container(
                                     child: CircleAvatar(
-                                      backgroundImage: AssetImage(
-                                          "assets/images/Profile Image.png"),
+                                      backgroundImage:
+                                          AssetImage(ImagesAsset.profileImage),
                                       radius: 80,
                                       foregroundImage: file == null
-                                          ? AssetImage(
-                                              "assets/images/Profile Image.png")
+                                          ? AssetImage(ImagesAsset.profileImage)
                                           : FileImage(File(file.path),
                                               scale: 1.0),
-                                      onForegroundImageError:
-                                          (exception, stackTrace) {
-                                        if (exception.toString() == null) {
-                                          addError(error: kAddressNullError);
-                                          return "";
-                                        }
-                                      },
                                     ),
                                   ),
                                 ],
@@ -260,7 +200,6 @@ class _BodyState extends State<Body> {
   TextFormField buildFirstNameFormField() {
     return TextFormField(
       controller: _editingControllerName,
-      //onSaved: (newValue) => firstName = newValue,
       onChanged: (value) {
         if (value.isNotEmpty) {
           removeError(error: kNameNullError);
@@ -288,7 +227,6 @@ class _BodyState extends State<Body> {
   TextFormField buildBusinessTypeFormField() {
     return TextFormField(
       controller: _editingControllerBusType,
-      //onSaved: (newValue) => businessType = newValue,
       onChanged: (value) {
         if (value.isNotEmpty) {
           removeError(error: kBusTypeNullError);
@@ -345,7 +283,21 @@ class _BodyState extends State<Body> {
     return TextFormField(
       controller: _editingControllerMapAddress,
       readOnly: true,
-      onTap: () {
+      onTap: () async {
+        _load = true;
+        var result = await MapService.instance.getCurrentPosition();
+        myLocation = result.city +
+            "," +
+            result.street +
+            "," +
+            result.country +
+            "," +
+            result.state;
+        _showMyAddress.text = myLocation;
+        print(result.latLng);
+        lat = result.latLng.latitude;
+        lng = result.latLng.longitude;
+        _load = false;
         showGeneralDialog(
             context: context,
             barrierDismissible: false,
@@ -354,7 +306,6 @@ class _BodyState extends State<Body> {
               return mapControllerWidget(context);
             });
       },
-      //onSaved: (newValue) => mapAddress = newValue,
       onChanged: (value) {
         if (value.isNotEmpty) {
           removeError(error: kMapAddressNullError);
@@ -385,11 +336,8 @@ class _BodyState extends State<Body> {
             mapType: MapType.normal,
             initialCameraPosition: initialLocation,
             myLocationEnabled: true,
-            zoomControlsEnabled: true,
-            zoomGesturesEnabled: true,
-            onCameraIdle: onMapIdle,
             onMapCreated: onMapCreated,
-            markers: Set.of((marker != null) ? [marker] : []),
+            markers: MapService.instance.getMapIcon(ImagesAsset.pinBlack) ?? {},
           ),
           Padding(
             padding: EdgeInsets.only(top: 20.0),
@@ -404,10 +352,20 @@ class _BodyState extends State<Body> {
                       child: TextFormField(
                         controller: _showMyAddress,
                         readOnly: true,
-                        onTap: () {
+                        onTap: () async {
                           if (myLocation == null) {
-                            var dd = getCurrentLocation();
-                            if (dd == null) {
+                            var result =
+                                await MapService.instance.getCurrentPosition();
+                            myLocation = result.street +
+                                "," +
+                                result.city +
+                                "," +
+                                result.country +
+                                "," +
+                                result.state;
+                            _showMyAddress.text = myLocation;
+                            _animateCamera(result.latLng);
+                            if (result != null) {
                               popAlert(context);
                             }
                           } else {
@@ -416,18 +374,15 @@ class _BodyState extends State<Body> {
                             popAlert(context);
                           }
                         },
-                        onChanged: (value) {
-                          _showMyAddress.text = value;
-                        },
                         decoration: InputDecoration(
                           border: InputBorder.none,
                           focusedBorder: InputBorder.none,
                           enabledBorder: InputBorder.none,
                           errorBorder: InputBorder.none,
                           disabledBorder: InputBorder.none,
-                          label: Text(_showMyAddress.text != null
-                              ? _showMyAddress.text
-                              : ''),
+                          label: _load
+                              ? CircularProgressIndicator()
+                              : Text(_showMyAddress.text),
                           floatingLabelBehavior: FloatingLabelBehavior.always,
                           suffixIcon: Align(
                             widthFactor: 1.0,
@@ -450,87 +405,12 @@ class _BodyState extends State<Body> {
   }
 
   // creating and getting location map
-  onMapCreated(GoogleMapController ctr) {
+  onMapCreated(GoogleMapController ctr) async {
     try {
-      //_controller.complete(ctr);
       _mapController = ctr;
-      MapService.instance.getCurrentPosition();
-      //getCurrentLocation();
+      _animateCamera(LatLng(lat, lng));
     } catch (e) {
       print(e);
-    }
-  }
-
-  // getting user current location
-  // getCurrentLocation() async {
-  //   try {
-  //     location = await _locationTracker.getLocation();
-  //     updateMarker(location);
-  //     if (_locationSubscription != null) {
-  //       _locationSubscription.cancel();
-  //     }
-  //     return _locationSubscription =
-  //         _locationTracker.onLocationChanged.listen((newLocalData) async {
-  //       if (_controller != null) {
-  //         updateMarker(newLocalData);
-  //         _mapController.animateCamera(
-  //           CameraUpdate.newCameraPosition(
-  //             new CameraPosition(
-  //               bearing: 192.8334901395799,
-  //               target: LatLng(newLocalData.latitude, newLocalData.longitude),
-  //               tilt: 0,
-  //               zoom: 18.00,
-  //             ),
-  //           ),
-  //         );
-  //         try {
-  //           final coordinates = await geoCode.reverseGeocoding(
-  //               latitude: newLocalData.latitude,
-  //               longitude: newLocalData.longitude);
-  //           lat = newLocalData.latitude;
-  //           lng = newLocalData.longitude;
-  //           var address = coordinates.streetAddress +
-  //               ' ' +
-  //               coordinates.city +
-  //               ' ' +
-  //               coordinates.countryName +
-  //               ' ' +
-  //               coordinates.postal +
-  //               ' ' +
-  //               coordinates.region;
-  //           myLocation = address;
-  //         } catch (e) {
-  //           print('Reverse Geo coding exception = ' + e.toString());
-  //         }
-  //       }
-  //       setState(() {
-  //         _showMyAddress.text = myLocation;
-  //       });
-  //     });
-  //   } on PlatformException catch (e) {
-  //     if (e.code == 'PERMISSION_DENIED') {
-  //       debugPrint("Permission Denied" + e.toString());
-  //     }
-  //   }
-  // }
-
-  // displaying marker on map current location
-
-  void updateMarker(LocationData newLocalData) async {
-    LatLng latLng = LatLng(newLocalData.latitude, newLocalData.longitude);
-    if (bitmapIcon != null) {
-      this.setState(() {
-        marker = Marker(
-            markerId: MarkerId("home"),
-            position: latLng,
-            rotation: newLocalData.headingAccuracy,
-            draggable: false,
-            zIndex: 2,
-            anchor: Offset(0.6, 0.9),
-            icon: bitmapIcon);
-      });
-    } else {
-      print('marker is null hy');
     }
   }
 
@@ -577,48 +457,41 @@ class _BodyState extends State<Body> {
     if (snapshot2 != null) {
       return url = await snapshot2.ref.getDownloadURL();
     } else {
-      print('snapshot2 =');
+      print('snapshot2 failed to get url =');
     }
     return null;
   }
 
   uploadDataToFirebaseDatabase(String url) async {
-    final DateTime date1 = DateTime.now();
-    final timestamp1 = date1.millisecondsSinceEpoch;
-    final DateTime datetime =
-        DateTime.fromMillisecondsSinceEpoch(timestamp1 * 1000);
-    String dateT = datetime.toString();
-    String latI = lat.toString();
-    String lngI = lng.toString();
-    if (_editingControllerName.text == null ||
-        _editingControllerBusType == null ||
-        _editingControllerBusDescription == null ||
-        _editingControllerMapAddress.text == null ||
-        dateT == null ||
-        latI == null ||
-        lngI == null ||
-        token == null ||
-        uuid == null) {
+    DateTime now = DateTime.now();
+    String formattedDate = DateFormat('yyyy-MM-dd – kk:mm').format(now);
+    token = MyDatabaseService.getDeviceToken();
+    print("my tokens = " + token);
+    if (lat != null || lng != null || uuid != null || token != null) {
       try {
         await _firebaseDatabase.child(uuid).set({
           'name': _editingControllerName.text,
           'businessType': _editingControllerBusType.text,
           'businessDescription': _editingControllerBusDescription.text,
           'address': _editingControllerMapAddress.text,
-          'completeOrders': '0',
+          'completeOrders': 0,
           'onlineStatus': 'online',
-          'blockByAdmin': '0',
-          'joinTimeStamp': dateT,
-          'lat': latI,
-          'lng': lngI,
+          'blockByAdmin': 0,
+          'joinTimeStamp': formattedDate,
+          'lat': lat,
+          'lng': lng,
           'picUrl': url,
           'fcm': token,
+          'rating': 0,
           'uuid': uuid
         }).whenComplete(() {
           setState(() {
             _load = false;
           });
           Navigator.pushNamed(context, HomeScreen.routeName);
+        }).onError((error, stackTrace) {
+          print('uploading to database error=' + error);
+          _load = false;
         });
       } catch (e) {
         print('upload user failed he' + e);
@@ -634,24 +507,8 @@ class _BodyState extends State<Body> {
     }
   }
 
-  getDeviceToken() {
-    FirebaseMessaging.instance.getToken().then((value) {
-      return value;
-    });
-  }
-
-  onMapIdle() {
-    _locationSubscription =
-        Future.delayed(Duration(milliseconds: 150)).asStream().listen((_) {
-      print('showing map is idle');
-    });
-  }
-
   @override
   void dispose() {
-    if (_locationSubscription != null) {
-      _locationSubscription.cancel();
-    }
     if (_mapController != null) {
       _mapController.dispose();
     }

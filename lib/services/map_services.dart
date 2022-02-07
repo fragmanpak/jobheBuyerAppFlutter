@@ -46,7 +46,6 @@ class MapService {
   }
 
   final String baseUrl = "https://maps.googleapis.com/maps/api/directions/json";
-
   Duration duration = Duration();
   final _delay = Delay(milliseconds: 2000);
 
@@ -61,12 +60,13 @@ class MapService {
       {DateTime time, InfoWindowType type}) async {
     if (address != null) {
       final Uint8List markerIcon =
-          await getBytesFromAsset("assets/images/position-marker.png", 65);
+          await getBytesFromAsset(ImagesAsset.pinBlack, 65);
       final icon = BitmapDescriptor.fromBytes(markerIcon);
       final marker = Marker(
           markerId: MarkerId(markerId),
           position: address.latLng,
           icon: icon,
+          infoWindow: InfoWindow(title: 'Current position'),
           onTap: () {
             controller.addInfoWindow(
               CustomWindow(
@@ -137,13 +137,13 @@ class MapService {
 
       final address = await getAddressFromCoordinate(
           LatLng(position.latitude, position.longitude));
-      currentPosition?.value = address;
+      currentPosition.value = address;
 
-      final icon = await getMapIcon(ImagesAsset.circlePin);
+      final icon = await getMapIcon(ImagesAsset.pinBlack);
       addMarker(
           CodeGenerator.instance.generateCode('m'), currentPosition.value, icon,
           time: DateTime.now(), type: InfoWindowType.position);
-      return currentPosition?.value;
+      return currentPosition.value;
     } else {
       return null;
     }
@@ -165,16 +165,24 @@ class MapService {
     }
   }
 
-  Future<Address> getRouteCoordinates(LatLng startLatLng,
-      LatLng endLatLng) async {
+  Future<Address> getRouteCoordinates(
+      LatLng startLatLng, LatLng endLatLng) async {
     markers.value.clear();
-
-    var uri = Uri.parse(
-        "$baseUrl?origin=${startLatLng?.latitude},${startLatLng
-            ?.longitude}&destination=${endLatLng?.latitude},${endLatLng
-            ?.longitude}&key=$apiKey");
+    String strOrigin =
+        "origin=" + '${startLatLng.latitude},${startLatLng.longitude}';
+    String strDestination =
+        "destination=" + "${endLatLng.latitude},${endLatLng.longitude}";
+    String sensor = "sensor=false";
+    String mode = "mode=" + "driving";
+    //build full parameter
+    String param = strOrigin + "&" + strDestination + "&" + sensor + "&" + mode;
+    // Output format
+    // create url to request
+    String url = "$baseUrl" + "?" + param + "&key=" + "$apiKey";
+    var uri = Uri.parse(url);
     http.Response response = await http.get(uri);
     Map values = jsonDecode(response.body);
+    print(values);
     final points = values['routes'][0]['overview_polyline']['points'];
     final legs = values['routes'][0]['legs'];
     final polyline = PolylinePoints().decodePolyline(points);
@@ -184,34 +192,31 @@ class MapService {
           values['routes'][0]['legs'][0]['duration']['value']);
       duration = DateTime.now().difference(time);
     }
-    Address endAddress = await _getEndAddressAndAddMarkers(
-        startLatLng, endLatLng, polyline);
+    Address endAddress =
+        await _getEndAddressAndAddMarkers(startLatLng, endLatLng, polyline);
 
     /// Get our end address
     return endAddress;
   }
 
-  Future<Address> _getEndAddressAndAddMarkers(LatLng startLatLng,
-      LatLng endLatLng, List<PointLatLng> polyline) async {
-    final endAddress =
-    await getAddressFromCoordinate(
-        LatLng(endLatLng.latitude, endLatLng.longitude), polylines: polyline);
+  Future<Address> _getEndAddressAndAddMarkers(
+      LatLng startLatLng, LatLng endLatLng, List<PointLatLng> polyline) async {
+    final endAddress = await getAddressFromCoordinate(
+        LatLng(endLatLng.latitude, endLatLng.longitude),
+        polylines: polyline);
     BitmapDescriptor icon = await getMapIcon(ImagesAsset.pin);
 
-    await addMarker(
-        CodeGenerator.instance.generateCode('m2'), endAddress, icon,
+    await addMarker(CodeGenerator.instance.generateCode('m2'), endAddress, icon,
         time: DateTime.now(), type: InfoWindowType.destination);
 
-    final startAddress =
-    await getAddressFromCoordinate(
+    final startAddress = await getAddressFromCoordinate(
         LatLng(startLatLng.latitude, startLatLng.longitude),
         polylines: polyline);
-    currentPosition?.value = startAddress;
+    currentPosition.value = startAddress;
 
-    BitmapDescriptor icon2 = await getMapIcon("ImagesAsset.circlePin");
+    BitmapDescriptor icon2 = await getMapIcon(ImagesAsset.circlePin);
     await addMarker(
-        CodeGenerator.instance.generateCode('m1'), currentPosition?.value,
-        icon2,
+        CodeGenerator.instance.generateCode('m1'), currentPosition.value, icon2,
         time: DateTime.now(), type: InfoWindowType.position);
 
     return endAddress;
@@ -237,7 +242,7 @@ class MapService {
           currentPositionMarker.copyWith(
               positionParam: LatLng(position.latitude, position.longitude));
         } catch (_) {}
-        currentPosition?.value = await getAddressFromCoordinate(
+        currentPosition.value = await getAddressFromCoordinate(
             LatLng(position.latitude, position.longitude));
       });
     }
@@ -260,7 +265,7 @@ class MapService {
                 state: placemark.administrativeArea,
                 country: placemark.country,
                 latLng: LatLng(location.latitude, location.longitude),
-                polyline : [],
+                polyline: [],
               );
               searchedAddress.add(address);
             }
@@ -277,11 +282,11 @@ class MapService {
     final address = await getAddressFromCoordinate(latLng);
 
     markers.value.clear();
-    controller.hideInfoWindow();
+    //controller.hideInfoWindow();
 
     final icon = await getMapIcon(ImagesAsset.circlePin);
     await addMarker(
-        CodeGenerator.instance.generateCode('m1'), currentPosition?.value, icon,
+        CodeGenerator.instance.generateCode('m1'), currentPosition.value, icon,
         time: DateTime.now(), type: InfoWindowType.position);
 
     return address;
