@@ -21,12 +21,6 @@ class NotificationHandler {
     if (route != null) {
       print('Get  payload: $route ');
     }
-    await Navigator.push(
-      myContext,
-      MaterialPageRoute<void>(builder: (context) {
-        return Help(route);
-
-      }),
-    );
+    await Navigator.of(myContext).pushNamed(route);
   }
 }

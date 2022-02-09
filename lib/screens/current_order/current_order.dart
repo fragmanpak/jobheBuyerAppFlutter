@@ -15,49 +15,52 @@ class CurrentOrder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     ProgressDialog pd = ProgressDialog(context: context);
+
     return Scaffold(
       body: sellerData != null
           ? StreamBuilder(
-              stream: _dataBase.child(kSeller).child(sellerData).onValue,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState != null) {
-                  if (snapshot.hasData) {
-                    final data = new Map<String, dynamic>.from(
-                        (snapshot.data as Event).snapshot.value);
-                    final result = Seller.fromJson(data);
-                    return ListTile(
-                      leading: CircleAvatar(
-                        child: result.picUrl != null
-                            ? NetworkImage(result.picUrl)
-                            : Center(
-                                child: CircularProgressIndicator(),
-                              ),
+        stream: _dataBase
+            .child(kSeller)
+            .child(sellerData)
+            .onValue,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState != null) {
+            if (snapshot.hasData) {
+              final data = new Map<String, dynamic>.from(
+                  (snapshot.data as Event).snapshot.value);
+              final result = Seller.fromJson(data);
+              return ListTile(
+                leading: CircleAvatar(
+                  child: result.picUrl != null
+                      ? NetworkImage(result.picUrl)
+                      : Center(
+                      child: pd.show(
+                        max: 100,
+                        msg: 'Please wait....',
+                        progressType: ProgressType.normal,
+                        borderRadius: 2.0,
+                        backgroundColor: Colors.red,
+                        barrierDismissible: false,
+                        barrierColor: Colors.transparent,
+                        elevation: 10,
+                        progressBgColor: Colors.green,
                       ),
-                      title: Text(result.name),
-                    );
-                  } else if (snapshot.hasError) {
-                    MySnakeBar.createSnackBar(
-                        Colors.deepOrange, snapshot.error, context);
-                  }
-                }
-                return Text('');
-              },
-            )
+                  ),
+                ),
+                title: Text(result.name),
+              );
+            } else if (snapshot.hasError) {
+              MySnakeBar.createSnackBar(
+                  Colors.deepOrange, snapshot.error, context);
+            }
+          }
+          return Text('');
+        },
+      )
           : Center(
-              child: pd.show(
-                  max: 100,
-                  msg: 'Please wait....',
-                  progressType: ProgressType.normal,
-                  borderRadius: 2.0,
-                backgroundColor: Colors.red,
-                barrierDismissible: false,
-                barrierColor: Colors.deepOrange,
-                elevation: 10,
-                progressBgColor: Colors.green,
+          child: Text('No current orders yet')
+      ),
 
-
-              ),
-            ),
     );
   }
 }

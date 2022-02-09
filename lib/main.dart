@@ -14,8 +14,15 @@ import 'package:jobheebuyer/theme.dart';
 import 'constants.dart';
 import 'handler/firebase_notification_handler.dart';
 
-FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-    FlutterLocalNotificationsPlugin();
+Future<void> _backgroundMessageHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+  print('Handle Background Service : ${message.notification}');
+  dynamic data = message.data['data'];
+
+  FirebaseNotifications.showNotification(data);
+}
+
+FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
 
 AndroidNotificationChannel channel;
 
@@ -33,7 +40,7 @@ Future<void> main() async {
   FirebaseMessaging.onBackgroundMessage(_backgroundMessageHandler);
   if (!kIsWeb) {
     channel = AndroidNotificationChannel(
-        'high_importance_channel', // id
+        'high_importance_channel_id', // id
         'High Importance Notifications', // title
         description: 'your channel description',
         enableLights: true,
@@ -41,6 +48,7 @@ Future<void> main() async {
         importance: Importance.high,
         playSound: true);
   }
+  flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
   // for foreground notification
   // final List<PendingNotificationRequest> pendingNotificationRequests =
   //     await flutterLocalNotificationsPlugin.pendingNotificationRequests();
@@ -63,16 +71,16 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'JobHee Buyer',
       theme: theme(),
-      //home: InitializerWidget(),
+      home: InitializerWidget(),
       //We use routeName so that we don`t need to remember the name
-      initialRoute: InitializerWidget.routeName,
+      //initialRoute: InitializerWidget.routeName,
       routes: routes,
     );
   }
 }
 
 class InitializerWidget extends StatefulWidget {
-  static String routeName = "/";
+  //static String routeName = "/";
 
   @override
   _InitializerWidgetState createState() => _InitializerWidgetState();
@@ -103,12 +111,4 @@ class _InitializerWidgetState extends State<InitializerWidget> {
           )
         : SplashScreen();
   }
-}
-
-Future<void> _backgroundMessageHandler(RemoteMessage message) async {
-  //await Firebase.initializeApp();
-  print('Handle Background Service : $message');
-  dynamic data = message.data['data'];
-
-  FirebaseNotifications.showNotification(data['title'], data['body']);
 }

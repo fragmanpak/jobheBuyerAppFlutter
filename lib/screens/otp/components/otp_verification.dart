@@ -40,15 +40,17 @@ class _OtpVerificationState extends State<OtpVerification> {
       border: Border.all(color: Colors.grey));
   bool _load = false;
 
-  @override
-  void initState() {
-    super.initState();
-  }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     verifyPhoneNumber();
+  }
+  @override
+  void dispose() {
+    _pinOtpCodController.dispose();
+    _pinOtpCodeFocus.dispose();
+    super.dispose();
   }
 
   @override
@@ -136,17 +138,13 @@ class _OtpVerificationState extends State<OtpVerification> {
                                         }
                                       });
                                     } catch (e) {
-                                      setState(() {
-                                        _load = true;
-                                      });
+                                      pd.close();
                                       print(e);
                                       MySnakeBar.createSnackBar(Colors.white,
                                           'something went wrong!', context);
                                     }
                                   } else {
-                                    setState(() {
-                                      _load = true;
-                                    });
+                                    pd.close();
                                     Navigator.of(context).push(
                                         MaterialPageRoute(
                                             builder: (c) =>
@@ -156,13 +154,13 @@ class _OtpVerificationState extends State<OtpVerification> {
                               },
                             );
                           } catch (e) {
-                            _load = false;
+                            pd.close();
                             FocusScope.of(context).unfocus();
                             MySnakeBar.createSnackBar(
                                 Colors.red, 'Invalid OTP', context);
                           }
                         } else {
-                          _load = false;
+                          pd.close();
                           MySnakeBar.createSnackBar(
                               Colors.red, 'No Internet Connection', context);
                         }

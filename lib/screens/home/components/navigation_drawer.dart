@@ -195,7 +195,7 @@ class _NavigationDrawerState extends State<NavigationDrawer> {
       case 5:
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (context) => Help('dsdsd'),
+            builder: (context) => Help(),
           ),
         );
         break;

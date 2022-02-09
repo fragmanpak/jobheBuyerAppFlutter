@@ -37,11 +37,16 @@ class _AddOrderState extends State<AddOrder> {
   ScrollController controller = ScrollController();
   bool closeTopContainer = false;
   double topContainers = 0;
-
+  BuildContext _myContext;
   @override
   void initState() {
     _loadResources();
     super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    //showDataList();
 
     controller.addListener(() {
       double value = controller.offset / 119;
@@ -59,11 +64,6 @@ class _AddOrderState extends State<AddOrder> {
             Colors.red, 'No Internet Connection', context);
       }
     });
-  }
-
-  @override
-  void didChangeDependencies() {
-    //showDataList();
     super.didChangeDependencies();
   }
 
@@ -71,8 +71,8 @@ class _AddOrderState extends State<AddOrder> {
   Widget build(BuildContext context) {
     final Size size = MediaQuery.of(context).size;
     final double categoryHeight = size.height * 0.65;
-    return SafeArea(
-        child: Scaffold(
+    _myContext = context;
+    return  Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
         centerTitle: true,
@@ -120,7 +120,6 @@ class _AddOrderState extends State<AddOrder> {
                             ),
                             TextFormField(
                               keyboardType: TextInputType.number,
-
                               focusNode: FocusNode(canRequestFocus: false),
                               inputFormatters: [
                                 FilteringTextInputFormatter.digitsOnly
@@ -310,7 +309,7 @@ class _AddOrderState extends State<AddOrder> {
         icon: const Icon(Icons.search),
         backgroundColor: kPrimaryColor,
       ),
-    ));
+    );
   }
 
   Widget cardUI(int index, String itemId, String itemName, String itemQuantity,
@@ -444,11 +443,9 @@ class _AddOrderState extends State<AddOrder> {
 
   Future<bool> _onBackPressed() {
     return showDialog(
-        context: context,
+        context: _myContext,
         builder: (BuildContext context) {
-          return allData.length == 0
-              ? removeOrderId()
-              : AlertDialog(
+          return  AlertDialog(
                   title: Text('Are you sure?'),
                   content: Text(
                     'Do you want to leave without placing order or save as draft !',

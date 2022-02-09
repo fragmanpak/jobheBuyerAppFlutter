@@ -77,11 +77,7 @@ dependencies:
 
 flutter_native_splash:
   color: "#42a5f5"
-  branding: "assets/icons/Cash.png"
-  branding_mode: bottom
-  color_dark: "#042a49"
-  background_image_dark: "assets/images/Profile Image.png"
-  image_dark: "assets/images/splash_1.png"
+  image: "assets/images/app_img_round.png"
   android: true
   ios: false
   web: false

@@ -2,18 +2,15 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
-import 'package:jobheebuyer/components/custom_alert_dialog.dart';
 import 'package:jobheebuyer/components/new_snake_bar.dart';
 import 'package:jobheebuyer/constants.dart';
 import 'package:jobheebuyer/handler/firebase_notification_handler.dart';
 import 'package:jobheebuyer/models/items_model.dart';
 import 'package:jobheebuyer/models/searc_stream_publisher.dart';
 import 'package:jobheebuyer/models/seller_model.dart';
-import 'package:jobheebuyer/screens/current_order/current_order.dart';
-import 'package:jobheebuyer/screens/home/home_screen.dart';
-import 'package:jobheebuyer/screens/send_order/SendOrderScreen.dart';
 import 'package:jobheebuyer/services/map_services.dart';
 import 'package:jobheebuyer/services/services.dart';
+import 'package:jobheebuyer/utils/image_assets.dart';
 import 'package:sn_progress_dialog/progress_dialog.dart';
 
 import '../../size_config.dart';
@@ -39,11 +36,6 @@ class _BodyState extends State<Body> {
   bool _loading = false;
 
   @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
   void didChangeDependencies() {
     _loadResources();
     super.didChangeDependencies();
@@ -64,7 +56,7 @@ class _BodyState extends State<Body> {
         child: Padding(
           padding: EdgeInsets.all(20.0),
           child: _loading
-              ? Center(child: pd.show(max: 100, msg: 'Loading...'))
+              ? Center(child: pd.show(max: 100, msg: 'wait...'))
               : Column(
                   children: [
                     _searchField(),
@@ -73,7 +65,7 @@ class _BodyState extends State<Body> {
                     ),
                     Padding(
                       padding: EdgeInsets.zero,
-                      child: SizedBox(
+                      child: Container(
                         height: SizeConfig.screenHeight - 220,
                         width: SizeConfig.screenWidth,
                         child: StreamBuilder(
@@ -85,12 +77,9 @@ class _BodyState extends State<Body> {
                               listTile.addAll(
                                 sellers.map((seller) {
                                   return ListTile(
-                                    // shadowColor: kPrimaryColor,
-                                    // elevation: 10,
+                                    selectedTileColor: Colors.white38,
                                     tileColor: Colors.white10,
-                                    title: Expanded(
-                                      flex: 1,
-                                      child: Padding(
+                                    title: Padding(
                                         padding: EdgeInsets.symmetric(
                                           horizontal:
                                               getProportionateScreenWidth(20),
@@ -107,15 +96,14 @@ class _BodyState extends State<Body> {
                                               child: Column(
                                                 children: [
                                                   CircleAvatar(
-                                                    radius: 50,
-                                                    child: seller.picUrl != null
-                                                        ? NetworkImage(
-                                                            seller.picUrl)
-                                                        : Center(
-                                                            child:
-                                                                CircularProgressIndicator(),
-                                                          ),
-                                                  ),
+                                                      radius: 30,
+                                                      backgroundImage: (seller
+                                                                  .picUrl !=
+                                                              null)
+                                                          ? NetworkImage(
+                                                              seller.picUrl)
+                                                          : AssetImage(ImagesAsset
+                                                              .profileImage)),
                                                   Text(
                                                     '${seller.onlineStatus}',
                                                     style: customTextStyle,
@@ -165,30 +153,27 @@ class _BodyState extends State<Body> {
                                                         ),
                                                       ),
                                                       ElevatedButton(
-                                                        onPressed: () {
+                                                        onPressed: () async {
                                                           final check =
                                                               InternetConnectionChecker()
                                                                   .hasConnection;
                                                           if (check != null) {
-                                                            setState(() {
-                                                              _loading = true;
-                                                            });
-                                                            FirebaseNotifications
-                                                                .sendFcmMessage(
+                                                            // await FirebaseNotifications
+                                                            //     .sendPushMessage();
+                                                               await  FirebaseNotifications.sendFcmMessage(
                                                                     'New Order',
-                                                                    '${seller.name}',
+                                                                    'From Buyer ${seller.name}',
                                                                     '${seller.fcm}',
-                                                                     'currentOrder'
-                                                            );
+                                                                    'currentOrder');
 
-                                                            Navigator.push(
-                                                                context,
-                                                                MaterialPageRoute(
-                                                                  builder: (context) =>
-                                                                      HomeScreen(
-                                                                          sellerData:
-                                                                              seller.uuid),
-                                                                ));
+                                                            // Navigator.push(
+                                                            //     context,
+                                                            //     MaterialPageRoute(
+                                                            //       builder: (context) =>
+                                                            //           HomeScreen(
+                                                            //               sellerData:
+                                                            //                   seller.uuid),
+                                                            //     ));
                                                           } else {
                                                             MySnakeBar
                                                                 .createSnackBar(
@@ -206,13 +191,13 @@ class _BodyState extends State<Body> {
                                           ],
                                         ),
                                       ),
-                                    ),
+
                                   );
                                 }),
                               );
                             } else {
                               return Center(
-                                child: CustomDialog.showLoaderDialog(context),
+                                child: CircularProgressIndicator(),
                               );
                             }
                             return ListView(
@@ -221,7 +206,7 @@ class _BodyState extends State<Body> {
                           },
                         ),
                       ),
-                    )
+                    ),
                   ],
                 ),
         ),

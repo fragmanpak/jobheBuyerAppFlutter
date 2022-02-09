@@ -47,8 +47,8 @@ class _NavHeaderState extends State<NavHeader> {
       drawer: NavigationDrawer(),
       body: <Widget>[
         CurrentOrder(
-          //sellerData: widget.sellerData,
-        ),
+            //sellerData: widget.sellerData,
+            ),
         CompletedOrders(),
       ][_currentIndex],
       floatingActionButton: FloatingActionButton(

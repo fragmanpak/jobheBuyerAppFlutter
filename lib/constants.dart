@@ -59,6 +59,16 @@ final RegExp numberPattern = RegExp('[1-3]');
 
 final RegExp mobilePattern = RegExp(r'(^(?:[+0]9)?[0-9]{10,12}$)');
 
+const String ORDER_STATUS_MSG_NEW_ORDER = "New Order";
+const String ORDER_STATUS_MSG_PRICE_ENTERED = "Price Entered";
+const String ORDER_STATUS_MSG_PRICE_ACCEPTED = "Price Accepted";
+const String ORDER_STATUS_MSG_LOCATION_REQUESTED = "Location Requested";
+const String ORDER_STATUS_MSG_LOCATION_GRANTED = "Location Granted";
+const String ORDER_STATUS_DELIVERY_STARTED = "Delivery Started";
+const String ORDER_STATUS_DELIVERY_COMPLETED = "Delivery Completed";
+const String ORDER_STATUS_PAYMENT_GIVEN = "Payment Given";
+const String ORDER_STATUS_ORDER_CANCELED = "Order Canceled";
+
 const String kEmailNullError = "Please Enter your email";
 const String kInvalidEmailError = "Please Enter Valid Email";
 const String kPassNullError = "Please Enter your password";

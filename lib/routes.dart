@@ -14,7 +14,7 @@ import 'main.dart';
 // All our routes will be available here
 final Map<String, WidgetBuilder> routes = {
 
-  InitializerWidget.routeName: (context) => InitializerWidget(),
+  //InitializerWidget.routeName: (context) => InitializerWidget(),
   SplashScreen.routeName: (context) => SplashScreen(),
   OtpRegistration.routeName: (context) => OtpVerification(),
   CompleteProfileScreen.routeName: (context) => CompleteProfileScreen(),
