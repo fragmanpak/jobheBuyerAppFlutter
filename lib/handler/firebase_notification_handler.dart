@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:jobheebuyer/main.dart';
 import 'package:http/http.dart' as http;
+import 'package:jobheebuyer/services/services.dart';
 import '../constants.dart';
 import 'notification_handler.dart';
 
@@ -36,15 +37,22 @@ class FirebaseNotifications {
     print(
         'Notification Authorization Status Settings ${settings.authorizationStatus}');
     //_token = await MyDatabaseService.getDeviceToken();
+    _firebaseMessaging.onTokenRefresh.listen((event) {
+      _firebaseMessaging.getToken().then((token) async {
+        var rst = await MyDatabaseService.saveDeviceToken(token);
+        print("New Refresh Token is " + rst.toString());
+      });
+      print('New Token is triggered ' + event);
+    });
+    // _firebaseMessaging
+    //     .subscribeToTopic('subscribe to me')
+    //     .whenComplete(() => print('subscribed ok'));
 
-    _firebaseMessaging
-        .subscribeToTopic('subscribe to me')
-        .whenComplete(() => print('subscribed ok'));
     FirebaseMessaging.instance.getInitialMessage().then((message) {
       if (message != null) {
-        final routeFromMessage = message.data["route"];
+        String routeFromMessage = message.data["route"];
+          Navigator.of(context).pushNamed(routeFromMessage);
 
-        Navigator.of(context).pushNamed(routeFromMessage);
       }
     });
 
@@ -59,6 +67,7 @@ class FirebaseNotifications {
         showNotification(message);
       }
     });
+
     FirebaseMessaging.onMessageOpenedApp.listen((message) {
       final routeFromMessage = message.data["route"];
 
@@ -95,6 +104,7 @@ class FirebaseNotifications {
           autoCancel: false,
           ongoing: true,
           importance: Importance.max,
+          ticker: 'ticker',
           icon: '@drawable/splash',
           priority: Priority.high);
 
@@ -120,12 +130,13 @@ class FirebaseNotifications {
       var url = "https://fcm.googleapis.com/fcm/send";
       var header = {
         "Content-Type": "application/json",
-        "Authorization": "key=" + serverKey,
+        "Authorization": "key=" + messagingSenderId,
       };
       var request = {
         "to": fcm,
         "direct_boot_ok": true,
         "notification": {
+          "android_channel_id": "high_importance_channel_id",
           "title": title,
           "body": message,
           "sound": "default",

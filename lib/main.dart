@@ -1,16 +1,18 @@
 import 'package:firebase_app_check/firebase_app_check.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:jobheebuyer/routes.dart';
 import 'package:jobheebuyer/screens/splash/splash_screen.dart';
 import 'package:jobheebuyer/size_config.dart';
 import 'package:jobheebuyer/theme.dart';
 
+import 'components/new_snake_bar.dart';
+import 'components/no_internet.dart';
 import 'constants.dart';
 import 'handler/firebase_notification_handler.dart';
 
@@ -67,14 +69,35 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'JobHee Buyer',
-      theme: theme(),
-      home: InitializerWidget(),
-      //We use routeName so that we don`t need to remember the name
-      //initialRoute: InitializerWidget.routeName,
-      routes: routes,
+    return FutureBuilder(
+      future: Init.instance.initialize(context),
+      builder: (context, AsyncSnapshot snapshot) {
+        // Show splash screen while waiting for app resources to load:
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return MaterialApp(
+            home: Center(
+              child: Container(
+                height: double.infinity,
+                width: double.infinity,
+                child: Image(
+                  fit: BoxFit.fitWidth,
+                  image: AssetImage('assets/images/jobhee.png'),
+                ),
+              ),
+            ),
+          );
+        } else {
+          return MaterialApp(
+            debugShowCheckedModeBanner: false,
+            title: 'JobHee Buyer',
+            theme: theme(),
+            home: InitializerWidget(),
+            //We use routeName so that we don`t need to remember the name
+            //initialRoute: InitializerWidget.routeName,
+            routes: routes,
+          );
+        }
+      },
     );
   }
 }
@@ -103,12 +126,23 @@ class _InitializerWidgetState extends State<InitializerWidget> {
   @override
   Widget build(BuildContext context) {
     SizeConfig().init(context);
-    return isLoading
-        ? Scaffold(
-            body: Center(
-              child: CircularProgressIndicator(),
-            ),
-          )
-        : SplashScreen();
+    return SplashScreen();
+  }
+}
+
+class Init {
+  Init._();
+
+  static final instance = Init._();
+
+  Future initialize(BuildContext context) async {
+
+    var check = await InternetConnectionChecker().hasConnection;
+    if (check == false) {
+      MySnakeBar.createSnackBar(Colors.red, 'No Internet Connections', context);
+      await Future.delayed(const Duration(seconds: 5));
+      Navigator.of(context)
+          .push(MaterialPageRoute(builder: (c) => NoInternet()));
+    }
   }
 }

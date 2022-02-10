@@ -56,7 +56,7 @@ class _BodyState extends State<Body> {
         child: Padding(
           padding: EdgeInsets.all(20.0),
           child: _loading
-              ? Center(child: pd.show(max: 100, msg: 'wait...'))
+              ? Center(child: pd.show(max: 100, msg: 'wait...',barrierDismissible: false))
               : Column(
                   children: [
                     _searchField(),

@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -13,11 +12,13 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:jobheebuyer/components/custom_surfix_icon.dart';
 import 'package:jobheebuyer/components/default_button.dart';
+import 'package:jobheebuyer/components/new_snake_bar.dart';
 import 'package:jobheebuyer/screens/home/home_screen.dart';
 import 'package:jobheebuyer/services/map_services.dart';
 import 'package:jobheebuyer/services/services.dart';
 import 'package:jobheebuyer/utils/image_assets.dart';
 import 'package:path/path.dart' as path;
+import 'package:sn_progress_dialog/progress_dialog.dart';
 
 import '../../../constants.dart';
 import '../../size_config.dart';
@@ -31,7 +32,7 @@ class _BodyState extends State<Body> {
   ImagePicker image = ImagePicker();
   File file;
   DatabaseReference _firebaseDatabase =
-      FirebaseDatabase.instance.reference().child(kJob).child(kSeller);
+      FirebaseDatabase.instance.reference().child(kJob).child(kBuyer);
 
   String uuid;
   final _formKey = GlobalKey<FormState>();
@@ -50,7 +51,6 @@ class _BodyState extends State<Body> {
   FirebaseMessaging firebaseMessaging;
   var token;
   String url;
-  bool _load = false;
   final currentAddressController = TextEditingController();
   static final CameraPosition initialLocation = CameraPosition(
     target: LatLng(31.524316907751494, 74.34614056040162),
@@ -65,11 +65,6 @@ class _BodyState extends State<Body> {
   }
 
   @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
   void didChangeDependencies() async {
     super.didChangeDependencies();
     uuid = await MyDatabaseService.getCurrentUser();
@@ -77,123 +72,124 @@ class _BodyState extends State<Body> {
 
   @override
   Widget build(BuildContext context) {
+    ProgressDialog pd = ProgressDialog(context: context);
     return Form(
       key: _formKey,
-      child: _load
-          ? LinearProgressIndicator()
-          : Center(
-              child: SingleChildScrollView(
-                scrollDirection: Axis.vertical,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Container(
-                      height: 160.0,
-                      color: Colors.white,
-                      child: GestureDetector(
-                          onTap: () {
-                            getImage();
-                          },
-                          child: Padding(
-                            padding: EdgeInsets.only(top: 10.0),
-                            child:
-                                Stack(fit: StackFit.loose, children: <Widget>[
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: <Widget>[
-                                  Container(
-                                    child: CircleAvatar(
-                                      backgroundImage:
-                                          AssetImage(ImagesAsset.profileImage),
-                                      radius: 80,
-                                      foregroundImage: file == null
-                                          ? AssetImage(ImagesAsset.profileImage)
-                                          : FileImage(File(file.path),
-                                              scale: 1.0),
-                                    ),
-                                  ),
-                                ],
+      child: SingleChildScrollView(
+        scrollDirection: Axis.vertical,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Container(
+              height: 160.0,
+              color: Colors.white,
+              child: GestureDetector(
+                  onTap: () {
+                    getImage();
+                  },
+                  child: Padding(
+                    padding: EdgeInsets.only(top: 10.0),
+                    child: Stack(fit: StackFit.loose, children: <Widget>[
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          Container(
+                            child: CircleAvatar(
+                              backgroundImage:
+                                  AssetImage(ImagesAsset.profileImage),
+                              radius: 80,
+                              foregroundImage: file == null
+                                  ? AssetImage(ImagesAsset.profileImage)
+                                  : FileImage(File(file.path), scale: 1.0),
+                            ),
+                          ),
+                        ],
+                      ),
+                      Padding(
+                          padding: EdgeInsets.only(top: 110.0, right: 120.0),
+                          child: new Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              CircleAvatar(
+                                backgroundColor: Colors.red,
+                                radius: 25.0,
+                                child: new Icon(
+                                  Icons.camera_alt,
+                                  color: Colors.white,
+                                ),
                               ),
-                              Padding(
-                                  padding:
-                                      EdgeInsets.only(top: 110.0, right: 120.0),
-                                  child: new Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: <Widget>[
-                                      CircleAvatar(
-                                        backgroundColor: Colors.red,
-                                        radius: 25.0,
-                                        child: new Icon(
-                                          Icons.camera_alt,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                    ],
-                                  )),
-                            ]),
+                            ],
                           )),
-                    ),
-                    SizedBox(height: getProportionateScreenHeight(30)),
-                    Padding(
-                        child: buildFirstNameFormField(),
-                        padding: EdgeInsets.symmetric(horizontal: 8.0)),
-                    SizedBox(height: getProportionateScreenHeight(10)),
-                    Padding(
-                        child: buildBusinessTypeFormField(),
-                        padding: EdgeInsets.symmetric(horizontal: 8.0)),
-                    SizedBox(height: getProportionateScreenHeight(10)),
-                    Padding(
-                        child: buildBusDescriptionFormField(),
-                        padding: EdgeInsets.symmetric(horizontal: 8.0)),
-                    SizedBox(height: getProportionateScreenHeight(10)),
-                    Padding(
-                        child: buildMapAddressFormField(),
-                        padding: EdgeInsets.symmetric(horizontal: 8.0)),
-                    SizedBox(height: getProportionateScreenHeight(40)),
-                    Padding(
-                        child: DefaultButton(
-                          text: "continue",
-                          press: () async {
-                            if (file == null) {
-                              showDialog(
-                                  context: context,
-                                  builder: (context) => AlertDialog(
-                                        title: Text("Message"),
-                                        content: Text("please attach your pic"),
-                                        actions: [
-                                          TextButton(
-                                              onPressed: () {
-                                                Navigator.of(context).pop();
-                                              },
-                                              child: Text('OK')),
-                                        ],
-                                      ));
-                            } else if (_formKey.currentState.validate()) {
-                              setState(() {
-                                _load = true;
-                              });
-                              //start progress bar
-                              String url = await uploadImageFileToDatabase();
-                              if (url != null) {
-                                uploadDataToFirebaseDatabase(url);
-                              } else {
-                                print('upload Data To Firebase Failed');
-                                setState(() {
-                                  _load = false;
-                                });
-                                Navigator.pushNamed(
-                                    context, HomeScreen.routeName);
-                              }
-                            }
-                          },
-                        ),
-                        padding: EdgeInsets.symmetric(horizontal: 8.0)),
-                    SizedBox(height: getProportionateScreenHeight(20)),
-                  ],
-                ),
-              ),
+                    ]),
+                  )),
             ),
+            SizedBox(height: getProportionateScreenHeight(30)),
+            Padding(
+                child: buildFirstNameFormField(),
+                padding: EdgeInsets.symmetric(horizontal: 8.0)),
+            SizedBox(height: getProportionateScreenHeight(10)),
+            Padding(
+                child: buildBusinessTypeFormField(),
+                padding: EdgeInsets.symmetric(horizontal: 8.0)),
+            SizedBox(height: getProportionateScreenHeight(10)),
+            Padding(
+                child: buildBusDescriptionFormField(),
+                padding: EdgeInsets.symmetric(horizontal: 8.0)),
+            SizedBox(height: getProportionateScreenHeight(10)),
+            Padding(
+                child: buildMapAddressFormField(),
+                padding: EdgeInsets.symmetric(horizontal: 8.0)),
+            SizedBox(height: getProportionateScreenHeight(40)),
+            Padding(
+                child: DefaultButton(
+                  text: "continue",
+                  press: () async {
+                    if (file == null) {
+                      showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                                title: Text("Message"),
+                                content: Text("please attach your pic"),
+                                actions: [
+                                  TextButton(
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                      child: Text('OK')),
+                                ],
+                              ));
+                    } else if (_formKey.currentState.validate()) {
+                      pd.show(
+                          max: 100,
+                          msg: 'Please wait .... ',
+                          barrierDismissible: false);
+                      //start progress bar
+                      String url = await uploadImageFileToDatabase();
+                      if (url != null) {
+                        bool rlt = await uploadDataToFirebaseDatabase(url,pd);
+                        if (rlt == true) {
+                          Navigator.pushNamed(context, HomeScreen.routeName);
+                        }else{
+                          print('upload Data Failed in Firebase ');
+                          pd.close();
+                          MySnakeBar.createSnackBar(Colors.blueGrey,
+                              'Process failed try again later !', context);
+                        }
+                      } else {
+                        print('upload Data To Firebase Failed');
+                        pd.close();
+                        MySnakeBar.createSnackBar(Colors.blueGrey,
+                            'Process failed try again later !', context);
+                      }
+                    }
+                  },
+                ),
+                padding: EdgeInsets.symmetric(horizontal: 8.0)),
+            SizedBox(height: getProportionateScreenHeight(20)),
+          ],
+        ),
+      ),
     );
   }
 
@@ -213,7 +209,7 @@ class _BodyState extends State<Body> {
         }
         return null;
       },
-      maxLength: 15,
+      maxLength: 20,
       inputFormatters: [FilteringTextInputFormatter.allow(textPattern)],
       decoration: InputDecoration(
         labelText: "First Name",
@@ -240,7 +236,7 @@ class _BodyState extends State<Body> {
         }
         return null;
       },
-      maxLength: 15,
+      maxLength: 30,
       inputFormatters: [FilteringTextInputFormatter.allow(textPattern)],
       decoration: InputDecoration(
         labelText: "Business Type",
@@ -268,7 +264,7 @@ class _BodyState extends State<Body> {
         }
         return null;
       },
-      maxLength: 15,
+      maxLength: 30,
       inputFormatters: [FilteringTextInputFormatter.allow(textPattern)],
       decoration: InputDecoration(
         labelText: "Business Description",
@@ -284,7 +280,6 @@ class _BodyState extends State<Body> {
       controller: _editingControllerMapAddress,
       readOnly: true,
       onTap: () async {
-        _load = true;
         var result = await MapService.instance.getCurrentPosition();
         myLocation = result.city +
             "," +
@@ -297,7 +292,6 @@ class _BodyState extends State<Body> {
         print(result.latLng);
         lat = result.latLng.latitude;
         lng = result.latLng.longitude;
-        _load = false;
         showGeneralDialog(
             context: context,
             barrierDismissible: false,
@@ -337,7 +331,7 @@ class _BodyState extends State<Body> {
             initialCameraPosition: initialLocation,
             myLocationEnabled: true,
             onMapCreated: onMapCreated,
-            markers: MapService.instance.getMapIcon(ImagesAsset.pinBlack) ?? {},
+            markers: MapService.instance.markers.value ?? {},
           ),
           Padding(
             padding: EdgeInsets.only(top: 20.0),
@@ -380,9 +374,7 @@ class _BodyState extends State<Body> {
                           enabledBorder: InputBorder.none,
                           errorBorder: InputBorder.none,
                           disabledBorder: InputBorder.none,
-                          label: _load
-                              ? CircularProgressIndicator()
-                              : Text(_showMyAddress.text),
+                          label: Text(_showMyAddress.text),
                           floatingLabelBehavior: FloatingLabelBehavior.always,
                           suffixIcon: Align(
                             widthFactor: 1.0,
@@ -444,31 +436,38 @@ class _BodyState extends State<Body> {
   }
 
   Future<String> uploadImageFileToDatabase() async {
-    final String fileName = path.basename(file.path);
-    firebase_storage.Reference reference = firebase_storage
-        .FirebaseStorage.instance
-        .ref()
-        .child('PicUrl')
-        .child(fileName);
-    UploadTask task2 = reference.putFile(file);
-    TaskSnapshot snapshot2 = await task2;
-    //for downloading url
-    await snapshot2.ref.getData();
-    if (snapshot2 != null) {
-      return url = await snapshot2.ref.getDownloadURL();
-    } else {
-      print('snapshot2 failed to get url =');
+    try {
+      final String fileName = path.basename(file.path);
+      firebase_storage.Reference reference = firebase_storage
+          .FirebaseStorage.instance
+          .ref()
+          .child('PicUrl')
+          .child(fileName);
+      UploadTask task2 = reference.putFile(file);
+      TaskSnapshot snapshot2 = await task2;
+      //for downloading url
+      await snapshot2.ref.getData();
+      if (snapshot2 != null) {
+        return url = await snapshot2.ref.getDownloadURL();
+      } else {
+        print('snapshot2 failed to get url =');
+      }
+      return null;
+    } on Exception catch (e) {
+      print("Unable to upload Image" + e.toString());
+      return null;
     }
-    return null;
   }
 
-  uploadDataToFirebaseDatabase(String url) async {
+  Future<bool> uploadDataToFirebaseDatabase(String url, ProgressDialog pd) async {
     DateTime now = DateTime.now();
     String formattedDate = DateFormat('yyyy-MM-dd – kk:mm').format(now);
-    token = MyDatabaseService.getDeviceToken();
-    print("my tokens = " + token);
-    if (lat != null || lng != null || uuid != null || token != null) {
+
+    if (lat != null || lng != null || uuid != null) {
       try {
+        token = await FirebaseMessaging.instance.getToken();
+        print("my tokens = " + token.toString());
+
         await _firebaseDatabase.child(uuid).set({
           'name': _editingControllerName.text,
           'businessType': _editingControllerBusType.text,
@@ -484,26 +483,18 @@ class _BodyState extends State<Body> {
           'fcm': token,
           'rating': 0,
           'uuid': uuid
-        }).whenComplete(() {
-          setState(() {
-            _load = false;
-          });
-          Navigator.pushNamed(context, HomeScreen.routeName);
-        }).onError((error, stackTrace) {
-          print('uploading to database error=' + error);
-          _load = false;
         });
+        pd.close();
+        return true;
       } catch (e) {
-        print('upload user failed he' + e);
-        setState(() {
-          _load = false;
-        });
+        print('upload user failed he' + e.toString());
+        pd.close();
+        return false;
       }
     } else {
-      setState(() {
-        _load = false;
-      });
       print('failed to create user');
+      pd.close();
+      return false;
     }
   }
 

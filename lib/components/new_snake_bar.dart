@@ -8,7 +8,7 @@ class MySnakeBar {
           message,
           style: customTextStyle,
         ),
-        duration: Duration(seconds: 2),
+        duration: Duration(seconds: 4),
         backgroundColor: clr);
     // Find the Scaffold in the Widget tree and use it to show a SnackBar!
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
