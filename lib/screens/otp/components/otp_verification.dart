@@ -39,7 +39,6 @@ class _OtpVerificationState extends State<OtpVerification> {
       borderRadius: BorderRadius.circular(10.0),
       border: Border.all(color: Colors.grey));
   bool _status = false;
-  FirebaseMessaging _firebaseMessaging;
 
   @override
   void didChangeDependencies() {
@@ -81,9 +80,7 @@ class _OtpVerificationState extends State<OtpVerification> {
             ),
             Text("We sent your code to ${widget.codeDigits}-${widget.phone}"),
             buildTimer(),
-            SizedBox(
-              height: 30,
-            ),
+            SizedBox(height: SizeConfig.screenHeight * 0.01),
             Padding(
               padding: EdgeInsets.all(40.0),
               child: PinPut(
@@ -98,12 +95,12 @@ class _OtpVerificationState extends State<OtpVerification> {
                 followingFieldDecoration: pinOtpCodeDecoration,
                 pinAnimationType: PinAnimationType.rotation,
                 onSubmit: (pin) async {
-                  pd.show(
-                      max: 100,
-                      msg: 'Please wait...',
-                      barrierDismissible: false);
                   var check = await InternetConnectionChecker().hasConnection;
                   if (check == true) {
+                    pd.show(
+                        max: 100,
+                        msg: 'Please wait...',
+                        barrierDismissible: false);
                     try {
                       await _auth
                           .signInWithCredential(PhoneAuthProvider.credential(
@@ -111,46 +108,50 @@ class _OtpVerificationState extends State<OtpVerification> {
                           .then(
                         (value) async {
                           if (value.user != null) {
-                            if (value.user.uid != null) {
-                              String uuid = value.user.uid;
-                              try {
-                                await _firebaseDatabase
-                                    .child(uuid)
-                                    .once()
-                                    .then((event) {
-                                  final data = new Map<String, dynamic>.from(
-                                      event.value);
-                                  final result = Seller.fromJson(data);
-                                  if (result.fcm != null) {
-                                    _firebaseMessaging
-                                        .getToken()
-                                        .then((token) async {
-                                      print(token);
-                                      var rst = await MyDatabaseService
-                                          .saveDeviceToken(token);
-                                      print("New Token " + rst.toString());
-                                    });
-
+                            String uuid = value.user.uid;
+                            try {
+                              await _firebaseDatabase
+                                  .child(uuid)
+                                  .once()
+                                  .then((event) async {
+                                final data =
+                                    new Map<String, dynamic>.from(event.value);
+                                final result = Seller.fromJson(data);
+                                if (result.fcm != null) {
+                                  var token = await FirebaseMessaging.instance
+                                      .getToken();
+                                  print(token);
+                                  if (result.fcm.trim() == token.trim()) {
+                                    print('tokens are same');
                                     pd.close();
                                     Navigator.of(context).push(
                                         MaterialPageRoute(
                                             builder: (c) => HomeScreen()));
                                   } else {
-                                    pd.close();
-                                    Navigator.of(context).push(
-                                        MaterialPageRoute(
-                                            builder: (c) =>
-                                                UserRegisterScreen()));
+                                    var rst =
+                                        await MyDatabaseService.saveDeviceToken(
+                                            token);
+                                    print("New Token " + rst.toString());
+                                    if (rst == false) {
+                                      pd.close();
+                                      MySnakeBar.createSnackBar(Colors.red,
+                                          "No Internet Connections", context);
+                                    } else {
+                                      pd.close();
+                                      Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                              builder: (c) => HomeScreen()));
+                                    }
                                   }
-                                });
-                              } catch (e) {
-                                pd.close();
-                                print(e);
-                                Navigator.of(context).push(MaterialPageRoute(
-                                    builder: (c) => UserRegisterScreen()));
-                              }
-                            } else {
+                                } else {
+                                  pd.close();
+                                  Navigator.of(context).push(MaterialPageRoute(
+                                      builder: (c) => UserRegisterScreen()));
+                                }
+                              });
+                            } catch (e) {
                               pd.close();
+                              print(e);
                               Navigator.of(context).push(MaterialPageRoute(
                                   builder: (c) => UserRegisterScreen()));
                             }
@@ -175,9 +176,10 @@ class _OtpVerificationState extends State<OtpVerification> {
             GestureDetector(
               onTap: () {
                 if (_status == true) {
-                  // OTP code resend
                   MySnakeBar.createSnackBar(
-                      Colors.grey, 'We send the new code', context);
+                      Colors.greenAccent,
+                      'We send the new code to ${widget.codeDigits}-${widget.phone}',
+                      context);
                   verifyPhoneNumber();
                   buildTimer();
                 }
@@ -226,23 +228,23 @@ class _OtpVerificationState extends State<OtpVerification> {
       await _auth.verifyPhoneNumber(
           phoneNumber: "${widget.codeDigits + widget.phone}",
           verificationCompleted: (PhoneAuthCredential credential) async {
-            await _auth.signInWithCredential(credential).then((value) async {
-              if (_auth.currentUser.uid != null) {
-                print(" verification completed " + value.user.toString());
-                Navigator.of(context)
-                    .push(MaterialPageRoute(builder: (c) => HomeScreen()));
-              }
-            }).onError((error, stackTrace) {
-              print('verification error ' + error);
-            });
-            print("verification completed");
+            // ANDROID ONLY!
+            // Sign the user in (or link) with the auto-generated credential
+            await _auth.signInWithCredential(credential);
+            print("verification complete");
           },
-          verificationFailed: (FirebaseAuthException e) {
-            MySnakeBar.createSnackBar(
-                Colors.red, 'verificationFailed', context);
-            print(" unable to code send ");
+          verificationFailed: (FirebaseAuthException e) async {
+            if (e.code == 'invalid-phone-number') {
+              MySnakeBar.createSnackBar(Colors.red,
+                  'The provided phone number is not valid.', context);
+              print('The provided phone number is not valid.');
+            }
+            var check = await InternetConnectionChecker().hasConnection;
+            if (check == false)
+              MySnakeBar.createSnackBar(
+                  Colors.red, 'No Internet Connections.', context);
           },
-          codeSent: (String vId, int resendCode) {
+          codeSent: (String vId, int resendCode) async {
             MySnakeBar.createSnackBar(Colors.white54, 'code sent', context);
             if (!mounted) return;
             setState(() {
@@ -252,11 +254,12 @@ class _OtpVerificationState extends State<OtpVerification> {
           },
           codeAutoRetrievalTimeout: (String vId) {
             if (!mounted) return;
+
             setState(() {
               _status = true;
-              verificationCode = vId;
-              print(" Time out hey");
+              // verificationCode = vId;
             });
+            print("otp Time out");
           },
           timeout: Duration(seconds: 30));
     } catch (e) {

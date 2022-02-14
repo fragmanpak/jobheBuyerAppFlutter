@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:jobheebuyer/models/seller_model.dart';
 import 'package:jobheebuyer/services/services.dart';
 
 import '../../constants.dart';

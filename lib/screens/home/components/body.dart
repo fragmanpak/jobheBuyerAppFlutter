@@ -3,6 +3,7 @@ import 'package:jobheebuyer/components/custom_tab_bar.dart';
 import 'package:jobheebuyer/screens/add_order/order_add.dart';
 import 'package:jobheebuyer/screens/completed_orders/complete_orders.dart';
 import 'package:jobheebuyer/screens/current_order/current_order.dart';
+import 'package:jobheebuyer/services/services.dart';
 
 import '../../../constants.dart';
 import 'navigation_drawer.dart';
@@ -31,13 +32,17 @@ class NavHeader extends StatefulWidget {
 
 class _NavHeaderState extends State<NavHeader> {
   int _currentIndex = 0;
-
+  String uuid="";
   void changePage(int index) {
     setState(() {
       _currentIndex = index;
     });
   }
-
+ @override
+  void didChangeDependencies() {
+   _loadResources();
+    super.didChangeDependencies();
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -46,9 +51,7 @@ class _NavHeaderState extends State<NavHeader> {
       ),
       drawer: NavigationDrawer(),
       body: <Widget>[
-        CurrentOrder(
-            //sellerData: widget.sellerData,
-            ),
+        CurrentOrder( uuid: uuid),
         CompletedOrders(),
       ][_currentIndex],
       floatingActionButton: FloatingActionButton(
@@ -86,5 +89,9 @@ class _NavHeaderState extends State<NavHeader> {
         ),
       ),
     );
+  }
+  void _loadResources() async {
+    uuid = await MyDatabaseService.getCurrentUser();
+    print(uuid);
   }
 }

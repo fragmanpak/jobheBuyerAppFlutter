@@ -31,13 +31,13 @@ class _AddOrderState extends State<AddOrder> {
   TextEditingController _textQntController = new TextEditingController();
   String _selectedText = 'kg';
   String uuid = '';
-  bool hasInternet = false;
   List<ItemModel> allData = [];
 
   ScrollController controller = ScrollController();
   bool closeTopContainer = false;
   double topContainers = 0;
   BuildContext _myContext;
+
   @override
   void initState() {
     _loadResources();
@@ -72,7 +72,7 @@ class _AddOrderState extends State<AddOrder> {
     final Size size = MediaQuery.of(context).size;
     final double categoryHeight = size.height * 0.65;
     _myContext = context;
-    return  Scaffold(
+    return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
         centerTitle: true,
@@ -107,6 +107,7 @@ class _AddOrderState extends State<AddOrder> {
                         child: Column(
                           children: <Widget>[
                             TextFormField(
+                              textInputAction: TextInputAction.next,
                               controller: _nameController,
                               maxLength: 15,
                               focusNode: FocusNode(canRequestFocus: false),
@@ -117,6 +118,8 @@ class _AddOrderState extends State<AddOrder> {
                               decoration: InputDecoration(
                                   border: OutlineInputBorder(),
                                   labelText: 'Enter Item Name'),
+                              onEditingComplete: () =>
+                                  FocusScope.of(context).nextFocus(),
                             ),
                             TextFormField(
                               keyboardType: TextInputType.number,
@@ -129,11 +132,14 @@ class _AddOrderState extends State<AddOrder> {
                               decoration: InputDecoration(
                                   border: OutlineInputBorder(),
                                   labelText: 'Enter Item Quantity'),
+                              onEditingComplete: () =>
+                                  FocusScope.of(context).unfocus(),
                             ),
                             Padding(
                                 padding: EdgeInsets.all(10.0),
                                 child: SingleChildScrollView(
                                   child: DropdownButton<String>(
+                                    autofocus: true,
                                     isExpanded: true,
                                     value: _selectedText,
                                     icon: Icon(Icons.arrow_downward_sharp,
@@ -168,9 +174,9 @@ class _AddOrderState extends State<AddOrder> {
                             ElevatedButton(
                               style: buttonStyle,
                               onPressed: () async {
-                                hasInternet = await InternetConnectionChecker()
+                                var check = await InternetConnectionChecker()
                                     .hasConnection;
-                                if (hasInternet == false) {
+                                if (check == false) {
                                   MySnakeBar.createSnackBar(Colors.red,
                                       'No Internet Connection', context);
                                 } else {
@@ -445,29 +451,29 @@ class _AddOrderState extends State<AddOrder> {
     return showDialog(
         context: _myContext,
         builder: (BuildContext context) {
-          return  AlertDialog(
-                  title: Text('Are you sure?'),
-                  content: Text(
-                    'Do you want to leave without placing order or save as draft !',
-                    style: customTextStyle,
-                  ),
-                  actions: <Widget>[
-                    ElevatedButton(
-                      child: Text('Save'),
-                      onPressed: () {
-                        Navigator.of(context).pop(true);
-                      },
-                    ),
-                    ElevatedButton(
-                      child: Text('YES'),
-                      onPressed: () {
-                        String orderId = OrderModel.getOrderId;
-                        _dbRef.child(uuid).child(orderId).remove();
-                        Navigator.of(context).pop(true);
-                      },
-                    ),
-                  ],
-                );
+          return AlertDialog(
+            title: Text('Are you sure?'),
+            content: Text(
+              'Do you want to leave without placing order or save as draft !',
+              style: customTextStyle,
+            ),
+            actions: <Widget>[
+              ElevatedButton(
+                child: Text('Save'),
+                onPressed: () {
+                  Navigator.of(context).pop(true);
+                },
+              ),
+              ElevatedButton(
+                child: Text('YES'),
+                onPressed: () {
+                  String orderId = OrderModel.getOrderId;
+                  _dbRef.child(uuid).child(orderId).remove();
+                  Navigator.of(context).pop(true);
+                },
+              ),
+            ],
+          );
         });
   }
 

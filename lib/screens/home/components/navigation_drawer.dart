@@ -7,7 +7,6 @@ import 'package:jobheebuyer/components/app_updates.dart';
 import 'package:jobheebuyer/components/help.dart';
 import 'package:jobheebuyer/components/new_snake_bar.dart';
 import 'package:jobheebuyer/components/share_with_friends.dart';
-import 'package:jobheebuyer/models/items_model.dart';
 import 'package:jobheebuyer/models/seller_model.dart';
 import 'package:jobheebuyer/screens/complete_profile/complete_profile_screen.dart';
 import 'package:jobheebuyer/screens/completed_orders/complete_orders.dart';
@@ -29,8 +28,6 @@ class NavigationDrawer extends StatefulWidget {
 class _NavigationDrawerState extends State<NavigationDrawer> {
   final padding = EdgeInsets.symmetric(horizontal: 20);
   final _auth = FirebaseAuth.instance;
-  final DatabaseReference _dbRef =
-      FirebaseDatabase.instance.reference().child(kJob).child(kBuyer);
   String name = 'No data';
   String urlImage;
 
@@ -40,7 +37,6 @@ class _NavigationDrawerState extends State<NavigationDrawer> {
     super.didChangeDependencies();
   }
 
-  //NavigationDrawer({Key key, this.name, this.urlImage}) : super(key: key);
   @override
   Widget build(BuildContext context) {
     return Drawer(
@@ -273,8 +269,8 @@ class _NavigationDrawerState extends State<NavigationDrawer> {
       );
 
   void drawerHeaderData() async {
-    var hasInternet = await InternetConnectionChecker().hasConnection;
-    if (hasInternet == true) {
+    var check = await InternetConnectionChecker().hasConnection;
+    if (check == true) {
       DatabaseReference _firebaseDatabase =
           FirebaseDatabase.instance.reference().child(kJob).child(kSeller);
       String uid = await MyDatabaseService.getCurrentUser();
@@ -293,31 +289,7 @@ class _NavigationDrawerState extends State<NavigationDrawer> {
       }
     } else {
       MySnakeBar.createSnackBar(
-          Colors.black12, 'No Internet Connection', context);
+          Colors.black12, 'No Internet Connections', context);
     }
-  }
-
-  void getDrawerHeaderFroDB() async {
-    String uid = await MyDatabaseService.getCurrentUser();
-    _dbRef.once().then((DataSnapshot snapshot) {
-      if (snapshot.value == null) {
-        print(snapshot.value.toString());
-      } else {
-        var keys = snapshot.value.keys;
-        var data = snapshot.value;
-        //allData.clear();
-
-        for (var key in keys) {
-          if (uid == key) {}
-          ItemModel d = new ItemModel(
-            data[key]['itemID'],
-            data[key]['itemName'],
-            data[key]['itemQuantity'],
-            data[key]['itemUnit'],
-          );
-          //allData.add(d);
-        }
-      }
-    });
   }
 }

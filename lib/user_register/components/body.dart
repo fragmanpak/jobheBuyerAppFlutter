@@ -167,10 +167,11 @@ class _BodyState extends State<Body> {
                       //start progress bar
                       String url = await uploadImageFileToDatabase();
                       if (url != null) {
-                        bool rlt = await uploadDataToFirebaseDatabase(url,pd);
+                        bool rlt = await uploadDataToFirebaseDatabase(url, pd);
                         if (rlt == true) {
+                          pd.close();
                           Navigator.pushNamed(context, HomeScreen.routeName);
-                        }else{
+                        } else {
                           print('upload Data Failed in Firebase ');
                           pd.close();
                           MySnakeBar.createSnackBar(Colors.blueGrey,
@@ -195,6 +196,7 @@ class _BodyState extends State<Body> {
 
   TextFormField buildFirstNameFormField() {
     return TextFormField(
+      textInputAction: TextInputAction.next,
       controller: _editingControllerName,
       onChanged: (value) {
         if (value.isNotEmpty) {
@@ -217,11 +219,13 @@ class _BodyState extends State<Body> {
         floatingLabelBehavior: FloatingLabelBehavior.always,
         suffixIcon: CustomSurffixIcon(svgIcon: "assets/icons/User.svg"),
       ),
+      onEditingComplete: () => FocusScope.of(context).nextFocus(),
     );
   }
 
   TextFormField buildBusinessTypeFormField() {
     return TextFormField(
+      textInputAction: TextInputAction.next,
       controller: _editingControllerBusType,
       onChanged: (value) {
         if (value.isNotEmpty) {
@@ -244,35 +248,36 @@ class _BodyState extends State<Body> {
         floatingLabelBehavior: FloatingLabelBehavior.always,
         suffixIcon: CustomSurffixIcon(svgIcon: "assets/icons/User.svg"),
       ),
+      onEditingComplete: () => FocusScope.of(context).nextFocus(),
     );
   }
 
   TextFormField buildBusDescriptionFormField() {
     return TextFormField(
-      controller: _editingControllerBusDescription,
-      //onSaved: (newValue) => busDescription = newValue,
-      onChanged: (value) {
-        if (value.isNotEmpty) {
-          removeError(error: kBusTypeNullError);
-        }
-        return null;
-      },
-      validator: (value) {
-        if (value.isEmpty) {
-          addError(error: kBusTypeNullError);
-          return "";
-        }
-        return null;
-      },
-      maxLength: 30,
-      inputFormatters: [FilteringTextInputFormatter.allow(textPattern)],
-      decoration: InputDecoration(
-        labelText: "Business Description",
-        hintText: "",
-        floatingLabelBehavior: FloatingLabelBehavior.always,
-        suffixIcon: CustomSurffixIcon(svgIcon: "assets/icons/User.svg"),
-      ),
-    );
+        textInputAction: TextInputAction.done,
+        controller: _editingControllerBusDescription,
+        onChanged: (value) {
+          if (value.isNotEmpty) {
+            removeError(error: kBusTypeNullError);
+          }
+          return null;
+        },
+        validator: (value) {
+          if (value.isEmpty) {
+            addError(error: kBusTypeNullError);
+            return "";
+          }
+          return null;
+        },
+        maxLength: 30,
+        inputFormatters: [FilteringTextInputFormatter.allow(textPattern)],
+        decoration: InputDecoration(
+          labelText: "Business Description",
+          hintText: "",
+          floatingLabelBehavior: FloatingLabelBehavior.always,
+          suffixIcon: CustomSurffixIcon(svgIcon: "assets/icons/User.svg"),
+        ),
+        onEditingComplete: () => FocusScope.of(context).unfocus());
   }
 
   buildMapAddressFormField() {
@@ -459,7 +464,8 @@ class _BodyState extends State<Body> {
     }
   }
 
-  Future<bool> uploadDataToFirebaseDatabase(String url, ProgressDialog pd) async {
+  Future<bool> uploadDataToFirebaseDatabase(
+      String url, ProgressDialog pd) async {
     DateTime now = DateTime.now();
     String formattedDate = DateFormat('yyyy-MM-dd – kk:mm').format(now);
 
@@ -487,13 +493,13 @@ class _BodyState extends State<Body> {
         pd.close();
         return true;
       } catch (e) {
-        print('upload user failed he' + e.toString());
         pd.close();
+        print('upload user failed he' + e.toString());
         return false;
       }
     } else {
-      print('failed to create user');
       pd.close();
+      print('failed to create user');
       return false;
     }
   }

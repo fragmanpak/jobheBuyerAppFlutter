@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:jobheebuyer/screens/home/home_screen.dart';
 import 'package:jobheebuyer/screens/otp/otp_registration.dart';
 
 import '../../../components/default_button.dart';

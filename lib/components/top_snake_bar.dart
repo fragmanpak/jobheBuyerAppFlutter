@@ -46,8 +46,5 @@ class MyInfoBar extends Flushbar {
     BuildContext context,
   }) {
     return MyInfoBar(message: message, icon: icon).show(context);
-    // Other properties get the default values as you have not specified any here.
   }
-
-// Similarly you can define other methods.
 }

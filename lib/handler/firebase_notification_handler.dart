@@ -15,13 +15,10 @@ import 'notification_handler.dart';
 class FirebaseNotifications {
   FirebaseMessaging _firebaseMessaging;
 
-  //BuildContext _context;
-
   void setupFirebase(BuildContext context) {
     _firebaseMessaging = FirebaseMessaging.instance;
     NotificationHandler.initNotification(context);
     firebaseCloudMessingListener(context);
-    // _context = context;
   }
 
   void firebaseCloudMessingListener(BuildContext context) async {
@@ -51,8 +48,17 @@ class FirebaseNotifications {
     FirebaseMessaging.instance.getInitialMessage().then((message) {
       if (message != null) {
         String routeFromMessage = message.data["route"];
-          Navigator.of(context).pushNamed(routeFromMessage);
-
+        String fromMessage = message.senderId;
+        String toMessage = message.from;
+        String messageId = message.messageId;
+        print(fromMessage +
+            '//-' +
+            toMessage +
+            '//-' +
+            messageId +
+            " // " +
+            routeFromMessage);
+        Navigator.of(context).pushNamed(routeFromMessage);
       }
     });
 
@@ -99,7 +105,8 @@ class FirebaseNotifications {
 
   static void showNotification(RemoteMessage message) async {
     try {
-      var androidChannel = AndroidNotificationDetails(channel.id, channel.name,
+      var androidChannel = AndroidNotificationDetails(
+          "high_importance_channel_id", "buyer channel",
           channelDescription: channel.description,
           autoCancel: false,
           ongoing: true,
@@ -130,13 +137,12 @@ class FirebaseNotifications {
       var url = "https://fcm.googleapis.com/fcm/send";
       var header = {
         "Content-Type": "application/json",
-        "Authorization": "key=" + messagingSenderId,
+        "Authorization": "key=" + serverKey,
       };
       var request = {
         "to": fcm,
         "direct_boot_ok": true,
         "notification": {
-          "android_channel_id": "high_importance_channel_id",
           "title": title,
           "body": message,
           "sound": "default",
@@ -148,15 +154,10 @@ class FirebaseNotifications {
       await http
           .post(Uri.parse(url), headers: header, body: json.encode(request))
           .then((value) {
-        //print(value.body);
-        // print(value.bodyBytes);
         print(value.statusCode);
-        // print(value.contentLength);
         print(value.headers);
-        // print(value.isRedirect);
-        //print(value.persistentConnection);
         print(value.reasonPhrase);
-        //print(value.request);
+        print(value.body);
       });
       return true;
     } catch (e, s) {
