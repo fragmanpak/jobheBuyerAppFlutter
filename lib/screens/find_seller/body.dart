@@ -32,6 +32,8 @@ class _BodyState extends State<Body> {
   String uuid;
   DatabaseReference _firebaseDatabase =
       FirebaseDatabase.instance.reference().child(kJob);
+  final df = new DateFormat('dd-MM-yyyy hh:mm a');
+  final int value = 1558432747;
 
   //double initialRange = 5.0;
 
@@ -70,171 +72,168 @@ class _BodyState extends State<Body> {
                     stream: SearchStreamPublisher().getSellerStream(),
                     builder: (context, snapshot) {
                       final listTile = <ListTile>[];
-                      // if (snapshot.connectionState == ConnectionState.waiting) {
-                        if (snapshot.hasData) {
-                          final sellers = snapshot.data as List<Seller>;
-                          listTile.addAll(
-                            sellers.map((seller) {
-                              return ListTile(
-                                selectedTileColor: Colors.white38,
-                                tileColor: Colors.white10,
-                                title: Padding(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: getProportionateScreenWidth(20),
-                                    vertical: getProportionateScreenHeight(20),
-                                  ),
-                                  child: Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Padding(
-                                        padding: EdgeInsets.only(right: 5.0),
-                                        child: Column(
-                                          children: [
-                                            CircleAvatar(
-                                                radius: 30,
-                                                backgroundImage:
-                                                    (seller.picUrl != null)
-                                                        ? NetworkImage(
-                                                            seller.picUrl)
-                                                        : AssetImage(ImagesAsset
-                                                            .profileImage)),
-                                            Text(
-                                              '${seller.onlineStatus}',
-                                              style: customTextStyle,
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      Expanded(
-                                        flex: 1,
-                                        child: SingleChildScrollView(
-                                          padding: EdgeInsets.only(left: 5.0),
-                                          scrollDirection: Axis.horizontal,
-                                          child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  'Name: ${seller.name}',
-                                                  style: customTextStyle,
-                                                ),
-                                                Text(
-                                                  'Complete Orders: ${seller.completeOrders}',
-                                                  style: customTextStyle,
-                                                ),
-                                                Text(
-                                                  'Ratings: ${seller.rating}',
-                                                  style: customTextStyle,
-                                                ),
-                                                Text(
-                                                  'BusinessType: ${seller.businessType}',
-                                                  style: customTextStyle,
-                                                ),
-                                                Text(
-                                                  'Description: ${seller.description}',
-                                                  style: customTextStyle,
-                                                ),
-                                                SizedBox(
-                                                  width: 300,
-                                                  child: Text(
-                                                    'Address: ${seller.address}',
-                                                    maxLines: 3,
-                                                    style: customTextStyle,
-                                                  ),
-                                                ),
-                                                ElevatedButton(
-                                                  onPressed: () async {
-                                                    pd.show(
-                                                        max: 100,
-                                                        msg: 'Please wait...',
-                                                        barrierDismissible:
-                                                            false);
-                                                    final check =
-                                                        await InternetConnectionChecker()
-                                                            .hasConnection;
-                                                    if (check == true) {
-                                                      try {
-                                                        await _firebaseDatabase
-                                                            .child(
-                                                                kAllOrdersStatus)
-                                                            .child(uuid)
-                                                            .child(
-                                                                widget.orderId)
-                                                            .set({
-                                                              'buyerId': uuid,
-                                                              'titleMessage':
-                                                                  ORDER_STATUS_MSG_NEW_ORDER,
-                                                              'orderId': widget
-                                                                  .orderId,
-                                                              'sellerId':
-                                                                  seller.uuid,
-                                                              'localTime':
-                                                                  DateFormat
-                                                                          .yMd()
-                                                                      .add_jm()
-                                                                      .toString(),
-                                                            })
-                                                            .timeout(Duration(
-                                                                minutes: 1))
-                                                            .whenComplete(
-                                                                () async {
-                                                              var status = await FirebaseNotifications.sendFcmMessage(
-                                                                  'New Order',
-                                                                  'From Buyer ${seller.name}',
-                                                                  '${seller.fcm}',
-                                                                  'HomeScreen');
-
-                                                              print("Order Id : " +
-                                                                  widget
-                                                                      .orderId);
-                                                              if (status ==
-                                                                  true) {
-                                                                pd.close();
-                                                                Navigator.push(
-                                                                    context,
-                                                                    MaterialPageRoute(
-                                                                      builder:
-                                                                          (context) =>
-                                                                              HomeScreen(),
-                                                                    ));
-                                                              } else {
-                                                                pd.close();
-                                                                MySnakeBar.createSnackBar(
-                                                                    Colors
-                                                                        .blueGrey,
-                                                                    '${seller.name} is not responding',
-                                                                    context);
-                                                              }
-                                                            });
-                                                      } on Exception catch (e) {
-                                                        pd.close();
-                                                        print(e);
-                                                      }
-                                                    } else {
-                                                      pd.close();
-                                                      MySnakeBar.createSnackBar(
-                                                          Colors.red,
-                                                          'No Internet Connection! try again later',
-                                                          context);
-                                                    }
-                                                  },
-                                                  child: Text('SendOrder'),
-                                                )
-                                              ]),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                      //if (snapshot.connectionState == ConnectionState.waiting) {
+                      if (snapshot.hasData) {
+                        final sellers = snapshot.data as List<Seller>;
+                        listTile.addAll(
+                          sellers.map((seller) {
+                            return ListTile(
+                              selectedTileColor: Colors.white38,
+                              tileColor: Colors.white10,
+                              title: Padding(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: getProportionateScreenWidth(20),
+                                  vertical: getProportionateScreenHeight(20),
                                 ),
-                              );
-                            }),
-                          );
-                        } else {
-                          return Center(
-                            child: CircularProgressIndicator(),
-                          );
-                        }
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Padding(
+                                      padding: EdgeInsets.only(right: 5.0),
+                                      child: Column(
+                                        children: [
+                                          CircleAvatar(
+                                              radius: 30,
+                                              backgroundImage: (seller.picUrl !=
+                                                      null)
+                                                  ? NetworkImage(seller.picUrl)
+                                                  : AssetImage(ImagesAsset
+                                                      .profileImage)),
+                                          Text(
+                                            '${seller.onlineStatus}',
+                                            style: customTextStyle,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Expanded(
+                                      flex: 1,
+                                      child: SingleChildScrollView(
+                                        padding: EdgeInsets.only(left: 5.0),
+                                        scrollDirection: Axis.horizontal,
+                                        child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                'Name: ${seller.name}',
+                                                style: customTextStyle,
+                                              ),
+                                              Text(
+                                                'Complete Orders: ${seller.completeOrders}',
+                                                style: customTextStyle,
+                                              ),
+                                              Text(
+                                                'Ratings: ${seller.rating}',
+                                                style: customTextStyle,
+                                              ),
+                                              Text(
+                                                'BusinessType: ${seller.businessType}',
+                                                style: customTextStyle,
+                                              ),
+                                              Text(
+                                                'Description: ${seller.description}',
+                                                style: customTextStyle,
+                                              ),
+                                              SizedBox(
+                                                width: 300,
+                                                child: Text(
+                                                  'Address: ${seller.address}',
+                                                  maxLines: 3,
+                                                  style: customTextStyle,
+                                                ),
+                                              ),
+                                              ElevatedButton(
+                                                onPressed: () async {
+                                                  pd.show(
+                                                      max: 100,
+                                                      msg: 'Please wait...',
+                                                      barrierDismissible:
+                                                          false);
+                                                  final check =
+                                                      await InternetConnectionChecker()
+                                                          .hasConnection;
+                                                  if (check == true) {
+                                                    try {
+                                                      await _firebaseDatabase
+                                                          .child(
+                                                              kAllOrdersStatus)
+                                                          .child(uuid)
+                                                          .child(widget.orderId)
+                                                          .set({
+                                                            'buyerId': uuid,
+                                                            'titleMessage':
+                                                                ORDER_STATUS_MSG_NEW_ORDER,
+                                                            'orderId':
+                                                                widget.orderId,
+                                                            'sellerId':
+                                                                seller.uuid,
+                                                            'localTime': df.format(
+                                                                new DateTime
+                                                                        .fromMillisecondsSinceEpoch(
+                                                                    value *
+                                                                        1000)),
+                                                          })
+                                                          .timeout(Duration(
+                                                              minutes: 1))
+                                                          .whenComplete(
+                                                              () async {
+                                                            var status = await FirebaseNotifications
+                                                                .sendFcmMessage(
+                                                                    'New Order',
+                                                                    'From Buyer ${seller.name}',
+                                                                    '${seller.fcm}',
+                                                                    'HomeScreen');
+
+                                                            print("Order Id : " +
+                                                                widget.orderId);
+                                                            if (status ==
+                                                                true) {
+                                                              pd.close();
+                                                              Navigator.push(
+                                                                  context,
+                                                                  MaterialPageRoute(
+                                                                    builder:
+                                                                        (context) =>
+                                                                            HomeScreen(),
+                                                                  ));
+                                                            } else {
+                                                              pd.close();
+                                                              MySnakeBar.createSnackBar(
+                                                                  Colors
+                                                                      .blueGrey,
+                                                                  '${seller.name} is not responding',
+                                                                  context);
+                                                            }
+                                                          });
+                                                    } on Exception catch (e) {
+                                                      pd.close();
+                                                      print(e);
+                                                    }
+                                                  } else {
+                                                    pd.close();
+                                                    MySnakeBar.createSnackBar(
+                                                        Colors.red,
+                                                        'No Internet Connection! try again later',
+                                                        context);
+                                                  }
+                                                },
+                                                child: Text('SendOrder'),
+                                              )
+                                            ]),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }),
+                        );
+                      } else {
+                        return Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      }
 
                       return ListView(
                         children: listTile,

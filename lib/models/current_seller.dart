@@ -8,12 +8,20 @@ import '../constants.dart';
 class CurrentSeller{
 
   final _dataBase = FirebaseDatabase.instance.reference().child(kJob);
-  StreamSubscription<Event> getCurrentSeller(String uuid) {
-    final seller=_dataBase.child(kSeller).child(uuid).onValue.listen((event) {
+  Stream getCurrentSeller(String uuid) {
+    final seller=_dataBase.child(kSeller).child(uuid).onValue.map((event){
       final data = new Map<String, dynamic>.from(event.snapshot.value);
       final result = Seller.fromJson(data);
-      return result;
+       return result;
     });
-    return seller;
+     return seller;
+
+
+    // listen((event) {
+    //   final data = new Map<String, dynamic>.from(event.snapshot.value);
+    //   final result = Seller.fromJson(data);
+    //   return result;
+    // });
+    // return seller;
   }
 }

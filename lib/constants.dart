@@ -21,11 +21,6 @@ const String ORDER_STATUS_ORDER_CANCELED = "Order Canceled";
 const String ORDER_DESCRIPTION_STATUS = "Please wait until the prices not added";
 
 
-const String kEmailNullError = "Please Enter your email";
-const String kInvalidEmailError = "Please Enter Valid Email";
-const String kPassNullError = "Please Enter your password";
-const String kShortPassError = "Password is too short";
-const String kMatchPassError = "Passwords don't match";
 const String kNameNullError = "Please Enter your name";
 const String kPhoneNumberNullError = "Please Enter your phone number";
 const String kAddressNullError = "Please Enter your address";
@@ -44,7 +39,7 @@ const kPrimaryGradientColor = LinearGradient(
 );
 const kSecondaryColor = Color(0xFFEEEEEE);
 const kOrangeColor = Color(0xFFF5C34E);
-const kTextColor = Color(0xFF1A1A1A);
+const kTextColorBlack = Color(0xFF1A1A1A);
 const kTextLightColor = Color(0xFF757575);
 
 const kAnimationDuration = Duration(milliseconds: 200);
@@ -100,6 +95,6 @@ final otpInputDecoration = InputDecoration(
 OutlineInputBorder outlineInputBorder() {
   return OutlineInputBorder(
     borderRadius: BorderRadius.circular(getProportionateScreenWidth(15)),
-    borderSide: BorderSide(color: kTextColor),
+    borderSide: BorderSide(color: kTextColorBlack),
   );
 }

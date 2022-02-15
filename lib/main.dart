@@ -119,14 +119,12 @@ class InitializerWidget extends StatefulWidget {
 }
 
 class _InitializerWidgetState extends State<InitializerWidget> {
-  bool isLoading = true;
   FirebaseNotifications firebaseNotifications = FirebaseNotifications();
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    isLoading = false;
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       firebaseNotifications.setupFirebase(context);
     });

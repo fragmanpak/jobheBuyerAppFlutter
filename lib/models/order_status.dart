@@ -1,7 +1,6 @@
 class OrdersStatusModel {
   String buyerId;
   String titleMessage;
-
   String orderId;
   String sellerId;
   String time;

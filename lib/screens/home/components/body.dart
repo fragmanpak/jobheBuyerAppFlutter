@@ -51,7 +51,7 @@ class _NavHeaderState extends State<NavHeader> {
       ),
       drawer: NavigationDrawer(),
       body: <Widget>[
-        CurrentOrder( uuid: uuid),
+        CurrentOrder( uid: uuid),
         CompletedOrders(),
       ][_currentIndex],
       floatingActionButton: FloatingActionButton(

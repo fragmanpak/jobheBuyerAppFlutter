@@ -222,7 +222,7 @@ class _OtpVerificationState extends State<OtpVerification> {
     );
   }
 
-  // 321457748
+  // 3214577488
   void verifyPhoneNumber() async {
     try {
       await _auth.verifyPhoneNumber(
